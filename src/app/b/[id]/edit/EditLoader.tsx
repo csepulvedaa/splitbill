@@ -68,6 +68,7 @@ export default function EditLoader({ billId, bill, items, participants, assignme
       assignments: assignmentDrafts,
       tipManualEnabled: bill.tip_manual_enabled,
       restaurantName: bill.restaurant ?? undefined,
+      totalDeclared: bill.total_declared ?? null,
       editingBillId: billId,
     })
 

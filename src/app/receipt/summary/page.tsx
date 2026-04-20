@@ -67,7 +67,7 @@ export default function SummaryPage() {
     setTipEnabled(draft.tipManualEnabled)
     setTipIncluded(draft.ocrResult?.propina_detectada.incluida ?? false)
     setCurrency(draft.ocrResult?.moneda ?? 'CLP')
-    setTotalDeclared(draft.ocrResult?.total ?? null)
+    setTotalDeclared(draft.ocrResult?.total ?? draft.totalDeclared ?? null)
   }, [router])
 
   useEffect(() => {

@@ -14,6 +14,7 @@ export interface BillDraft {
   assignments: AssignmentDraft[]   // { item_id, participant_ids[] }
   tipManualEnabled: boolean
   restaurantName?: string          // Nombre del restaurante (editable por el usuario)
+  totalDeclared?: number | null    // Total declarado (preservado al editar)
   editingBillId?: string           // Presente cuando se edita una cuenta existente
 }
 
