@@ -37,6 +37,7 @@ export default function SummaryPage() {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [assignments, setAssignments] = useState<ReturnType<typeof buildAssignments>>([])
   const [editingBillId, setEditingBillId] = useState<string | null>(null)
+  const [restaurantName, setRestaurantName] = useState<string | null>(null)
 
   useEffect(() => {
     const draft = getDraft()
@@ -45,6 +46,7 @@ export default function SummaryPage() {
       return
     }
     setEditingBillId(draft.editingBillId ?? null)
+    setRestaurantName(draft.restaurantName ?? null)
 
     const builtItems = draft.items.map((i, idx) => ({
       ...i,
@@ -107,7 +109,7 @@ export default function SummaryPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bill: {
-            restaurant: null,
+            restaurant: restaurantName || null,
             currency,
             subtotal_declared: draft.ocrResult?.subtotal ?? null,
             tip_included: tipIncluded,

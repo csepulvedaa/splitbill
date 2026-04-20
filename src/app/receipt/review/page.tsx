@@ -12,6 +12,7 @@ import type { EditableItem } from '@/lib/types'
 export default function ReviewPage() {
   const router = useRouter()
   const [items, setItems] = useState<EditableItem[]>([])
+  const [restaurantName, setRestaurantName] = useState('')
   const [ocrConfidence, setOcrConfidence] = useState<string>('alta')
   const [ocrNotes, setOcrNotes] = useState<string[]>([])
   const [subtotalDeclared, setSubtotalDeclared] = useState<number | null>(null)
@@ -25,6 +26,7 @@ export default function ReviewPage() {
       return
     }
     setItems(draft.items)
+    setRestaurantName(draft.restaurantName ?? '')
     setOcrConfidence(draft.ocrResult?.confianza_general ?? 'alta')
     setOcrNotes(draft.ocrResult?.notas_ocr ?? [])
     setSubtotalDeclared(draft.ocrResult?.subtotal ?? null)
@@ -75,6 +77,7 @@ export default function ReviewPage() {
       return
     }
     draft.items = items
+    draft.restaurantName = restaurantName.trim() || undefined
     saveDraft(draft)
     router.push('/receipt/participants')
   }
@@ -126,6 +129,19 @@ export default function ReviewPage() {
           <span>Propina incluida en la cuenta: <strong>${tipAmount.toLocaleString('es-CL')}</strong></span>
         </div>
       )}
+
+      {/* Nombre del restaurante */}
+      <div className="mx-4 mt-4">
+        <label className="text-xs text-slate-400 mb-1 block">Nombre del restaurante (opcional)</label>
+        <input
+          type="text"
+          value={restaurantName}
+          onChange={(e) => setRestaurantName(e.target.value)}
+          placeholder="Ej: La Pizzería"
+          maxLength={60}
+          className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 text-sm"
+        />
+      </div>
 
       {/* Lista de ítems */}
       <div className="flex-1 px-4 mt-4 space-y-2 pb-4">

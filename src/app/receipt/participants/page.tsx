@@ -46,9 +46,23 @@ export default function ParticipantsPage() {
   function handleContinue() {
     const draft = getDraft()
     if (!draft) return
+    const prevIds = new Set(draft.participants.map((p) => p.id))
+    const newIds = new Set(participants.map((p) => p.id))
+    const participantsChanged = participants.some((p) => !prevIds.has(p.id)) || draft.participants.some((p) => !newIds.has(p.id))
+
     draft.participants = participants
-    // Limpiar asignaciones previas si cambiaron los participantes
-    draft.assignments = []
+    if (participantsChanged) {
+      // Filtrar asignaciones para que solo queden participantes que siguen en la lista
+      draft.assignments = draft.assignments
+        .map((a) => ({
+          ...a,
+          participant_ids: a.participant_ids.filter((pid) => newIds.has(pid)),
+          quantities: a.quantities
+            ? Object.fromEntries(Object.entries(a.quantities).filter(([pid]) => newIds.has(pid)))
+            : undefined,
+        }))
+        .filter((a) => a.participant_ids.length > 0)
+    }
     saveDraft(draft)
     router.push('/receipt/assign')
   }

@@ -7,6 +7,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-20
+
+### Added
+- **Nombre del restaurante editable**: campo de texto en la revisión de ítems para nombrar la cuenta. Se guarda en el draft y persiste al editar.
+
+### Fixed
+- **Pills de asignación**: estado no-seleccionado ahora es gris neutro para todos los participantes (antes cada uno tenía un color distinto del arcoíris).
+- **Persistencia de asignaciones al editar**: al volver a la pantalla de participantes, las asignaciones ya existentes se conservan (se filtran si se elimina un participante, no se borran todas).
+- **Nombre del restaurante en edición**: al entrar al flujo de edición, el nombre del restaurante se pre-carga desde la cuenta guardada.
+
 ## [0.3.0] - 2026-04-20
 
 ### Added

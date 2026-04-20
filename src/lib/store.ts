@@ -13,6 +13,7 @@ export interface BillDraft {
   participants: ParticipantDraft[]
   assignments: AssignmentDraft[]   // { item_id, participant_ids[] }
   tipManualEnabled: boolean
+  restaurantName?: string          // Nombre del restaurante (editable por el usuario)
   editingBillId?: string           // Presente cuando se edita una cuenta existente
 }
 
