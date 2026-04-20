@@ -49,19 +49,14 @@ export default function EditLoader({ billId, bill, items, participants, assignme
       const item = items.find((i) => i.id === item_id)
       const participant_ids = asgns.map((a) => a.participant_id)
 
-      // Para ítems con cantidad>1, intentar reconstruir cantidades por persona
+      // Para ítems con cantidad>1, siempre reconstruir cantidades por persona
       if (item && item.cantidad > 1) {
-        const allEqual = asgns.every(
-          (a) => Math.abs(a.fraccion - asgns[0].fraccion) < 0.001,
-        )
-        if (!allEqual) {
-          const quantities: Record<string, number> = {}
-          for (const a of asgns) {
-            quantities[a.participant_id] = Math.round(a.fraccion * item.cantidad)
-          }
-          assignmentDrafts.push({ item_id, participant_ids, quantities })
-          continue
+        const quantities: Record<string, number> = {}
+        for (const a of asgns) {
+          quantities[a.participant_id] = Math.round(a.fraccion * item.cantidad)
         }
+        assignmentDrafts.push({ item_id, participant_ids, quantities })
+        continue
       }
       assignmentDrafts.push({ item_id, participant_ids })
     }

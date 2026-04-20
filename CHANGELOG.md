@@ -7,6 +7,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-04-20
+
+### Fixed
+- **Resumen ÷N**: ahora muestra el total del ítem (`÷5 de $12.000`) para que sea claro qué se está dividiendo.
+- **Asignaciones multi-unidad al editar**: al editar una cuenta existente, los contadores de + y - ahora se pre-cargan con las cantidades guardadas (antes siempre aparecían en 0).
+
 ## [0.3.1] - 2026-04-20
 
 ### Added

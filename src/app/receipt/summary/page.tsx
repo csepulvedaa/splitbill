@@ -241,7 +241,7 @@ export default function SummaryPage() {
                         {pi.item.nombre}
                         {pi.fraccion < 1 && (
                           <span className="text-slate-400 text-xs ml-1.5">
-                            ÷{Math.round(1 / pi.fraccion)}
+                            ÷{Math.round(1 / pi.fraccion)} de {formatCurrency(pi.item.precio_total ?? 0, currency)}
                           </span>
                         )}
                       </span>
