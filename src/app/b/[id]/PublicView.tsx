@@ -152,7 +152,7 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
                   <div key={pi.item.id} className="flex justify-between items-baseline gap-2 text-sm">
                     <span className="text-slate-600 flex-1 leading-snug">
                       {pi.item.nombre}
-                      {pi.fraccion < 1 && <span className="text-slate-400 text-xs ml-1.5">÷{Math.round(1 / pi.fraccion)}</span>}
+                      {pi.fraccion < 1 && <span className="text-slate-400 text-xs ml-1.5">÷{Math.round(1 / pi.fraccion)} de {formatCurrency(pi.item.precio_total ?? 0, currency)}</span>}
                     </span>
                     <span className="font-semibold text-slate-800 shrink-0 tabular-nums">{formatCurrency(pi.monto, currency)}</span>
                   </div>
