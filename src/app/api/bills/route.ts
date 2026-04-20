@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
 
 // Historial: últimas 20 cuentas
 export async function GET() {
-  const { data, error } = await supabaseAdmin
+  const { data: bills, error } = await supabaseAdmin
     .from('bills')
     .select('id, created_at, restaurant, currency, total_declared, status')
     .order('created_at', { ascending: false })
@@ -91,5 +91,27 @@ export async function GET() {
     return NextResponse.json({ error: 'Error al obtener el historial.' }, { status: 500 })
   }
 
-  return NextResponse.json(data)
+  // Para cuentas sin total_declared, calcular la suma de ítems
+  const nullIds = (bills ?? []).filter((b) => b.total_declared == null).map((b) => b.id)
+  if (nullIds.length > 0) {
+    const { data: items } = await supabaseAdmin
+      .from('items')
+      .select('bill_id, precio_total')
+      .in('bill_id', nullIds)
+
+    if (items && items.length > 0) {
+      const totals = new Map<string, number>()
+      for (const item of items) {
+        totals.set(item.bill_id, (totals.get(item.bill_id) ?? 0) + (item.precio_total ?? 0))
+      }
+      return NextResponse.json(
+        (bills ?? []).map((b) => ({
+          ...b,
+          total_declared: b.total_declared ?? totals.get(b.id) ?? null,
+        })),
+      )
+    }
+  }
+
+  return NextResponse.json(bills)
 }

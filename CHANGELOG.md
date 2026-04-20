@@ -12,7 +12,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 ### Fixed
 - **Resumen ÷N**: ahora muestra el total del ítem (`÷5 de $12.000`) para que sea claro qué se está dividiendo.
 - **Asignaciones multi-unidad al editar**: al editar una cuenta existente, los contadores de + y - ahora se pre-cargan con las cantidades guardadas (antes siempre aparecían en 0).
-- **Total en inicio tras edición**: `total_declared` se preserva en el draft al editar para que no se pierda al guardar.
+- **Total en inicio tras edición**: `total_declared` se preserva en el draft al editar. Para cuentas con `total_declared = null`, el historial ahora calcula el total sumando los ítems directamente.
 
 ## [0.3.1] - 2026-04-20
 
