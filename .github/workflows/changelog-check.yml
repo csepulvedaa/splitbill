@@ -1,0 +1,25 @@
+name: Changelog Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  changelog:
+    name: changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify CHANGELOG.md was updated
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -q "^CHANGELOG\.md$"; then
+            echo "✅ CHANGELOG.md fue actualizado."
+          else
+            echo "❌ Este PR no incluye cambios en CHANGELOG.md."
+            echo ""
+            echo "Agrega una entrada en CHANGELOG.md bajo [Unreleased] antes de hacer merge."
+            exit 1
+          fi

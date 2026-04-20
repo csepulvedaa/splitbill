@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧾 SplitBill
 
-## Getting Started
+Divide la cuenta del restaurante entre tus amigos sin dramas.
 
-First, run the development server:
+## ¿Qué hace?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. **Foto → OCR** — Saca una foto de la boleta y GPT-4o extrae los ítems automáticamente
+2. **Revisa ítems** — Edita nombres, precios o agrega ítems manuales
+3. **Agrega participantes** — Quiénes van a pagar
+4. **Asigna ítems** — Elige quién pidió qué. Para ítems con cantidad > 1 (ej. 3 cervezas) se asignan unidades individuales a cada persona
+5. **Resumen y propina** — Vista por persona con toggle de propina 10%
+6. **Comparte** — Link público o copia como texto para el grupo de WhatsApp
+
+## Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Base de datos**: Supabase (PostgreSQL)
+- **OCR**: OpenAI GPT-4o Vision
+- **UI**: Tailwind CSS + shadcn/ui
+- **Deploy**: Vercel
+
+## Variables de entorno
+
+```env
+OPENAI_API_KEY=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Desarrollo local
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+cp .env.local.example .env.local
+# Rellena las variables en .env.local
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estructura
 
-## Learn More
+```
+src/
+├── app/
+│   ├── new/              # Captura de foto
+│   ├── receipt/
+│   │   ├── review/       # Revisión de ítems OCR
+│   │   ├── participants/ # Agregar participantes
+│   │   ├── assign/       # Asignar ítems
+│   │   └── summary/      # Resumen final
+│   ├── b/[id]/           # Vista pública compartible
+│   └── api/
+│       ├── analyze-receipt/  # Endpoint OCR
+│       └── bills/            # CRUD cuentas
+├── lib/
+│   ├── calculations.ts   # Lógica de split
+│   ├── store.ts          # Estado en sessionStorage
+│   └── types.ts          # Tipos TypeScript
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Contribuir
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Todo PR debe incluir una entrada en `CHANGELOG.md`** — hay un check automático que lo verifica y bloquea el merge si no está actualizado.
