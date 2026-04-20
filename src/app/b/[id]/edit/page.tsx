@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Bill, Item, Participant, Assignment } from '@/lib/types'
-import { calculateSummary, buildAssignments } from '@/lib/calculations'
-import PublicView from './PublicView'
+import EditLoader from './EditLoader'
 
 async function getBillData(id: string) {
   const [billRes, itemsRes, participantsRes] = await Promise.all([
@@ -27,32 +26,9 @@ async function getBillData(id: string) {
   }
 }
 
-export default async function BillPublicPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>
-  searchParams: Promise<{ para?: string; saved?: string; edited?: string }>
-}) {
+export default async function EditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { para, saved, edited } = await searchParams
-
   const data = await getBillData(id)
   if (!data) notFound()
-
-  const { bill, items, participants, assignments } = data
-  const summaries = calculateSummary(items, participants, assignments, bill.tip_manual_enabled)
-
-  return (
-    <PublicView
-      bill={bill}
-      billId={id}
-      summaries={summaries}
-      highlightName={para}
-      justSaved={saved === '1'}
-      justEdited={edited === '1'}
-    />
-  )
+  return <EditLoader billId={id} {...data} />
 }
-
-export const revalidate = 0

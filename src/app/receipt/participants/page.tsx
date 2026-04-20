@@ -56,14 +56,14 @@ export default function ParticipantsPage() {
   const canContinue = participants.length >= 2
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <header className="safe-top bg-slate-900 text-white px-4 pt-4 pb-5 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-1 -ml-1">
+    <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
+      <header className="safe-top text-white px-4 pt-4 pb-5 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div>
-          <h1 className="text-xl font-semibold">¿Quiénes están en la mesa?</h1>
-          <p className="text-slate-400 text-xs mt-0.5">Mínimo 2 personas</p>
+          <h1 className="text-xl font-semibold">👥 ¿Quiénes están en la mesa?</h1>
+          <p className="text-white/70 text-xs mt-0.5">Mínimo 2 personas</p>
         </div>
       </header>
 
@@ -82,7 +82,7 @@ export default function ParticipantsPage() {
                 className="flex items-center justify-between bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-slate-100"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-sm font-bold">
+                  <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm font-bold" style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)' }}>
                     {p.nombre.charAt(0).toUpperCase()}
                   </div>
                   <span className="font-medium text-slate-900">{p.nombre}</span>
@@ -113,7 +113,8 @@ export default function ParticipantsPage() {
           <button
             onClick={addParticipant}
             disabled={!inputValue.trim()}
-            className="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center disabled:opacity-40 active:bg-slate-800"
+            className="w-14 h-14 text-white rounded-2xl flex items-center justify-center disabled:opacity-40"
+            style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
           >
             <Plus className="w-6 h-6" />
           </button>
@@ -125,12 +126,13 @@ export default function ParticipantsPage() {
       </div>
 
       {/* CTA */}
-      <div className="sticky bottom-0 bg-white border-t border-slate-100 px-4 py-3 safe-bottom">
+      <div className="sticky bottom-0 px-4 py-3 safe-bottom" style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}>
         <Button
           onClick={handleContinue}
           size="lg"
           disabled={!canContinue}
-          className="w-full h-14 text-base rounded-2xl bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-40"
+          className="w-full h-14 text-base rounded-2xl text-white disabled:opacity-40"
+          style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
         >
           Continuar — Asignar ítems
         </Button>

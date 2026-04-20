@@ -7,6 +7,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-20
+
+### Added
+- **Marcar como liquidada**: botón en la vista pública para marcar una cuenta como pagada. Muestra badge "✅ Liquidada" en el header y en el historial de inicio.
+- **Edición completa de cuenta**: botón "Editar" en la vista pública que carga la cuenta existente en el flujo de edición (ítems → participantes → asignaciones → resumen). Soporta reconstrucción de asignaciones por cantidad para ítems multi-unidad.
+- Endpoint `PATCH /api/bills/[id]` para liquidar y para edición completa (delete + reinsert).
+- Página `/b/[id]/edit` con `EditLoader` que hidrata el sessionStorage desde la BD.
+
+### Changed
+- Tema aplicado consistentemente en todas las páginas: gradiente rose→orange en headers, fondo `#FFF7F7`, CTAs con gradiente. Anteriormente solo assign y summary tenían el nuevo tema.
+- Historial en home muestra badge verde "Liquidada" para cuentas con `status = 'liquidada'`.
+- `revalidate = 0` en `/b/[id]` para reflejar cambios de estado inmediatamente.
+
 ## [0.2.0] - 2026-04-20
 
 ### Added

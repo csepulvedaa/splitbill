@@ -13,6 +13,7 @@ export interface BillDraft {
   participants: ParticipantDraft[]
   assignments: AssignmentDraft[]   // { item_id, participant_ids[] }
   tipManualEnabled: boolean
+  editingBillId?: string           // Presente cuando se edita una cuenta existente
 }
 
 const KEY = 'splitbill_draft'

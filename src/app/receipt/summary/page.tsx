@@ -36,6 +36,7 @@ export default function SummaryPage() {
   const [items, setItems] = useState<Item[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [assignments, setAssignments] = useState<ReturnType<typeof buildAssignments>>([])
+  const [editingBillId, setEditingBillId] = useState<string | null>(null)
 
   useEffect(() => {
     const draft = getDraft()
@@ -43,6 +44,7 @@ export default function SummaryPage() {
       router.replace('/new')
       return
     }
+    setEditingBillId(draft.editingBillId ?? null)
 
     const builtItems = draft.items.map((i, idx) => ({
       ...i,
@@ -96,9 +98,12 @@ export default function SummaryPage() {
     const draft = getDraft()
     if (!draft) return
 
+    const url = editingBillId ? `/api/bills/${editingBillId}` : '/api/bills'
+    const method = editingBillId ? 'PATCH' : 'POST'
+
     try {
-      const res = await fetch('/api/bills', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bill: {
@@ -122,7 +127,7 @@ export default function SummaryPage() {
 
       const { id } = await res.json()
       clearDraft()
-      router.push(`/b/${id}?saved=1`)
+      router.push(`/b/${id}?saved=1&edited=${editingBillId ? '1' : '0'}`)
     } catch {
       toast.error('Error al guardar la cuenta. Intenta de nuevo.')
       setSaving(false)

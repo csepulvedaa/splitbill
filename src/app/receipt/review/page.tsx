@@ -88,14 +88,14 @@ export default function ReviewPage() {
   const lowConfidenceItems = items.filter((i) => i.confianza_item === 'baja')
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <header className="safe-top bg-slate-900 text-white px-4 pt-4 pb-5 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-1 -ml-1">
+    <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
+      <header className="safe-top text-white px-4 pt-4 pb-5 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div>
-          <h1 className="text-xl font-semibold">Revisa los ítems</h1>
-          <p className="text-slate-400 text-xs mt-0.5">Toca cualquier campo para editar</p>
+          <h1 className="text-xl font-semibold">✏️ Revisa los ítems</h1>
+          <p className="text-white/70 text-xs mt-0.5">Toca cualquier campo para editar</p>
         </div>
       </header>
 
@@ -236,11 +236,12 @@ export default function ReviewPage() {
       </div>
 
       {/* CTA fijo */}
-      <div className="sticky bottom-0 bg-white border-t border-slate-100 px-4 py-3 safe-bottom">
+      <div className="sticky bottom-0 px-4 py-3 safe-bottom" style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}>
         <Button
           onClick={handleContinue}
           size="lg"
-          className="w-full h-14 text-base rounded-2xl bg-slate-900 hover:bg-slate-800 text-white"
+          className="w-full h-14 text-base rounded-2xl text-white"
+          style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
           disabled={items.length === 0}
         >
           Continuar — Participantes
