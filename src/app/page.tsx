@@ -13,6 +13,7 @@ interface BillSummary {
   restaurant: string | null
   currency: string
   total_declared: number | null
+  status?: string
 }
 
 export default function HomePage() {
@@ -29,15 +30,15 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="flex flex-col min-h-dvh">
+    <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
       {/* Header */}
-      <header className="safe-top bg-slate-900 text-white px-4 pt-4 pb-5">
+      <header className="safe-top text-white px-4 pt-4 pb-5" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">SplitBill</h1>
-            <p className="text-slate-400 text-sm mt-0.5">Divide la cuenta sin dramas</p>
+            <p className="text-white/70 text-sm mt-0.5">Divide la cuenta sin dramas</p>
           </div>
-          <Receipt className="w-8 h-8 text-slate-400" />
+          <Receipt className="w-8 h-8 text-white/70" />
         </div>
       </header>
 
@@ -46,7 +47,8 @@ export default function HomePage() {
         <Link href="/new">
           <Button
             size="lg"
-            className="w-full h-16 text-lg gap-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl"
+            className="w-full h-16 text-lg gap-3 text-white rounded-2xl"
+            style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
           >
             <Camera className="w-6 h-6" />
             Nueva cuenta
@@ -93,6 +95,11 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {bill.status === 'liquidada' && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                        Liquidada
+                      </span>
+                    )}
                     {bill.total_declared != null && (
                       <span className="font-semibold text-slate-900">
                         {formatCurrency(bill.total_declared, bill.currency)}

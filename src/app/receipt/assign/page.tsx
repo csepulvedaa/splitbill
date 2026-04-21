@@ -329,9 +329,8 @@ export default function AssignPage() {
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {participants.map((p, idx) => {
+                    {participants.map((p) => {
                       const selected = assignedIds.includes(p.id)
-                      const color = avatarColor(idx)
                       return (
                         <button
                           key={p.id}
@@ -345,8 +344,8 @@ export default function AssignPage() {
                                   boxShadow: '0 2px 8px rgba(244,63,94,0.35)',
                                 }
                               : {
-                                  background: color.bg,
-                                  color: color.text,
+                                  background: '#F1F5F9',
+                                  color: '#64748B',
                                 }
                           }
                         >

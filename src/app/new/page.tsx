@@ -90,24 +90,24 @@ export default function NewPage() {
 
   if (processing) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-dvh bg-slate-900 text-white px-8">
+      <div className="flex flex-col items-center justify-center min-h-dvh text-white px-8" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
         <div className="relative w-20 h-20 mb-8">
-          <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
+          <div className="absolute inset-0 rounded-full border-4 border-white/30" />
           <div className="absolute inset-0 rounded-full border-4 border-t-white animate-spin" />
         </div>
         <p className="text-xl font-semibold text-center mb-2">{statusMsg}</p>
-        <p className="text-slate-400 text-sm text-center">Esto toma entre 10 y 20 segundos</p>
+        <p className="text-white/70 text-sm text-center">Esto toma entre 10 y 20 segundos</p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <header className="safe-top bg-slate-900 text-white px-4 pt-4 pb-5 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-1 -ml-1">
+    <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
+      <header className="safe-top text-white px-4 pt-4 pb-5 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
+        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-semibold">Nueva cuenta</h1>
+        <h1 className="text-xl font-semibold">📸 Nueva cuenta</h1>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
@@ -120,11 +120,12 @@ export default function NewPage() {
 
         <button
           onClick={() => cameraInputRef.current?.click()}
-          className="w-full flex flex-col items-center justify-center gap-3 bg-slate-900 text-white rounded-3xl h-44 active:bg-slate-800 transition-colors"
+          className="w-full flex flex-col items-center justify-center gap-3 text-white rounded-3xl h-44 transition-colors"
+          style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
         >
           <Camera className="w-10 h-10" />
           <span className="text-lg font-semibold">Tomar foto</span>
-          <span className="text-slate-400 text-sm">Apunta a la cuenta</span>
+          <span className="text-white/70 text-sm">Apunta a la cuenta</span>
         </button>
 
         <button

@@ -36,6 +36,8 @@ export default function SummaryPage() {
   const [items, setItems] = useState<Item[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [assignments, setAssignments] = useState<ReturnType<typeof buildAssignments>>([])
+  const [editingBillId, setEditingBillId] = useState<string | null>(null)
+  const [restaurantName, setRestaurantName] = useState<string | null>(null)
 
   useEffect(() => {
     const draft = getDraft()
@@ -43,6 +45,8 @@ export default function SummaryPage() {
       router.replace('/new')
       return
     }
+    setEditingBillId(draft.editingBillId ?? null)
+    setRestaurantName(draft.restaurantName ?? null)
 
     const builtItems = draft.items.map((i, idx) => ({
       ...i,
@@ -63,7 +67,7 @@ export default function SummaryPage() {
     setTipEnabled(draft.tipManualEnabled)
     setTipIncluded(draft.ocrResult?.propina_detectada.incluida ?? false)
     setCurrency(draft.ocrResult?.moneda ?? 'CLP')
-    setTotalDeclared(draft.ocrResult?.total ?? null)
+    setTotalDeclared(draft.ocrResult?.total ?? draft.totalDeclared ?? null)
   }, [router])
 
   useEffect(() => {
@@ -96,13 +100,16 @@ export default function SummaryPage() {
     const draft = getDraft()
     if (!draft) return
 
+    const url = editingBillId ? `/api/bills/${editingBillId}` : '/api/bills'
+    const method = editingBillId ? 'PATCH' : 'POST'
+
     try {
-      const res = await fetch('/api/bills', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bill: {
-            restaurant: null,
+            restaurant: restaurantName || null,
             currency,
             subtotal_declared: draft.ocrResult?.subtotal ?? null,
             tip_included: tipIncluded,
@@ -122,7 +129,7 @@ export default function SummaryPage() {
 
       const { id } = await res.json()
       clearDraft()
-      router.push(`/b/${id}?saved=1`)
+      router.push(`/b/${id}?saved=1&edited=${editingBillId ? '1' : '0'}`)
     } catch {
       toast.error('Error al guardar la cuenta. Intenta de nuevo.')
       setSaving(false)
@@ -234,7 +241,7 @@ export default function SummaryPage() {
                         {pi.item.nombre}
                         {pi.fraccion < 1 && (
                           <span className="text-slate-400 text-xs ml-1.5">
-                            ÷{Math.round(1 / pi.fraccion)}
+                            ÷{Math.round(1 / pi.fraccion)} de {formatCurrency(pi.item.precio_total ?? 0, currency)}
                           </span>
                         )}
                       </span>
