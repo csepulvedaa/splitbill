@@ -7,6 +7,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-21
+
+### Added
+- **Identidad anónima por dispositivo**: se genera un UUID en `localStorage` como `device_id`. Cada cuenta nueva se asocia a ese ID, y el historial solo muestra las cuentas del dispositivo actual. Preparado para vincularse a un usuario real en el futuro.
+
+### Migration
+- Ejecutar `supabase/migrations/20260421_add_device_id.sql` en Supabase: agrega columna `device_id TEXT` e índice a la tabla `bills`.
+
 ## [0.3.2] - 2026-04-20
 
 ### Fixed

@@ -6,6 +6,7 @@ import { Camera, Receipt, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/calculations'
 import { clearDraft } from '@/lib/store'
+import { getDeviceId } from '@/lib/identity'
 
 interface BillSummary {
   id: string
@@ -22,7 +23,7 @@ export default function HomePage() {
 
   useEffect(() => {
     clearDraft()
-    fetch('/api/bills')
+    fetch('/api/bills', { headers: { 'X-Device-Id': getDeviceId() } })
       .then((r) => r.json())
       .then(setHistory)
       .catch(() => setHistory([]))
