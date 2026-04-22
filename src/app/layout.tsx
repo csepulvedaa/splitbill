@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Splitbill" />
       </head>
-      <body className="h-full bg-slate-50 font-sans antialiased">
+      <body className="h-full bg-slate-50 font-sans antialiased" suppressHydrationWarning>
         {children}
         <Toaster position="top-center" richColors />
       </body>
