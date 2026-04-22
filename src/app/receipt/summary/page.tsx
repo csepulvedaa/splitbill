@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Share2, Copy, CheckCheck, AlertTriangle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getDraft, clearDraft } from '@/lib/store'
+import { getDeviceId } from '@/lib/identity'
 import { buildAssignments, calculateSummary, formatCurrency, round2 } from '@/lib/calculations'
 import type { Item, Participant, PersonSummary } from '@/lib/types'
 
@@ -106,7 +107,7 @@ export default function SummaryPage() {
     try {
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Device-Id': getDeviceId() },
         body: JSON.stringify({
           bill: {
             restaurant: restaurantName || null,

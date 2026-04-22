@@ -27,11 +27,12 @@ export async function POST(request: NextRequest) {
   }
 
   const { bill, items, participants, assignments } = body
+  const deviceId = request.headers.get('X-Device-Id') ?? null
 
   // Insertar bill
   const { data: billData, error: billError } = await supabaseAdmin
     .from('bills')
-    .insert(bill)
+    .insert({ ...bill, device_id: deviceId })
     .select()
     .single()
 
@@ -80,12 +81,20 @@ export async function POST(request: NextRequest) {
 }
 
 // Historial: últimas 20 cuentas
-export async function GET() {
-  const { data: bills, error } = await supabaseAdmin
+export async function GET(request: NextRequest) {
+  const deviceId = request.headers.get('X-Device-Id')
+
+  let query = supabaseAdmin
     .from('bills')
     .select('id, created_at, restaurant, currency, total_declared, status')
     .order('created_at', { ascending: false })
     .limit(20)
+
+  if (deviceId) {
+    query = query.eq('device_id', deviceId)
+  }
+
+  const { data: bills, error } = await query
 
   if (error) {
     return NextResponse.json({ error: 'Error al obtener el historial.' }, { status: 500 })
