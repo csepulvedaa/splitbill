@@ -41,7 +41,7 @@ export default function HomePage() {
             <p className="text-white/70 text-sm mt-0.5">Divide la cuenta sin dramas</p>
           </div>
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-            <Image src="/favicon.svg" alt="SplitBill" width={28} height={28} className="sm:w-8 sm:h-8" />
+            <Image src="/favicon-96x96.png" alt="SplitBill" width={28} height={28} className="sm:w-8 sm:h-8" />
           </div>
         </div>
       </header>
