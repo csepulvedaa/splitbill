@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Camera, Receipt, ChevronRight } from 'lucide-react'
+import { Camera, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/calculations'
 import { clearDraft } from '@/lib/store'
@@ -39,7 +39,8 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold tracking-tight">SplitBill</h1>
             <p className="text-white/70 text-sm mt-0.5">Divide la cuenta sin dramas</p>
           </div>
-          <Receipt className="w-8 h-8 text-white/70" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/favicon.svg" alt="SplitBill" className="w-10 h-10" />
         </div>
       </header>
 

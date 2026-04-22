@@ -7,6 +7,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-04-21
+
+### Fixed
+- `site.webmanifest`: corregido nombre ("SplitBill"), `theme_color` (#f43f5e) y `background_color` (#FFF7F7) — el merge anterior no incluyó estos cambios.
+- Banner del home: reemplaza ícono `Receipt` por `favicon.svg`.
+- `metadataBase` apunta a `https://splitbill.cl` para URLs absolutas en metadata.
+
 ## [0.4.1] - 2026-04-21
 
 ### Added
