@@ -44,7 +44,6 @@ export default function HomePage() {
             <p className="text-white/70 text-sm mt-0.5">Divide la cuenta sin dramas</p>
           </div>
         </div>
-        </div>
       </header>
 
       {/* Acción principal */}
