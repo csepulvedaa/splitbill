@@ -180,7 +180,7 @@ export default function SummaryPage() {
         </div>
       </header>
 
-      {/* Toggle propina */}
+      {/* Tip toggle */}
       <div className="mx-4 mt-4 bg-white rounded-2xl px-4 py-3.5 flex items-center justify-between"
         style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
       >
@@ -202,7 +202,7 @@ export default function SummaryPage() {
         </button>
       </div>
 
-      {/* Cards por persona */}
+      {/* Per-person cards */}
       <div className="flex-1 px-4 py-3 space-y-3 pb-44">
         {summaries.map((s, idx) => {
           const color = avatarColor(idx)
@@ -231,7 +231,7 @@ export default function SummaryPage() {
                 </p>
               </div>
 
-              {/* Ítems */}
+              {/* Items */}
               <div className="px-4 py-3.5 space-y-2.5">
                 {s.items.length === 0 ? (
                   <p className="text-sm text-slate-400 italic">Sin ítems asignados</p>
@@ -276,7 +276,7 @@ export default function SummaryPage() {
           )
         })}
 
-        {/* Validación */}
+        {/* Validation */}
         <div
           className={`rounded-2xl p-4 text-sm ${showDiffWarning ? '' : 'bg-white'}`}
           style={
@@ -309,7 +309,7 @@ export default function SummaryPage() {
         </div>
       </div>
 
-      {/* CTAs fijos */}
+      {/* Sticky CTAs */}
       <div
         className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-3 safe-bottom space-y-2"
         style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}

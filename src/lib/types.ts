@@ -1,4 +1,4 @@
-// ─── Tipos del dominio ────────────────────────────────────────────────────────
+// ─── Domain types ─────────────────────────────────────────────────────────────
 
 export type OcrConfidence = 'alta' | 'media' | 'baja'
 
@@ -33,7 +33,7 @@ export interface OcrResult {
   idioma_cuenta: string
 }
 
-// ─── Entidades de base de datos ───────────────────────────────────────────────
+// ─── Database entities ────────────────────────────────────────────────────────
 
 export interface Bill {
   id: string
@@ -79,25 +79,25 @@ export interface Assignment {
   monto_asignado: number
 }
 
-// ─── Tipos del flujo de creación (estado en cliente) ─────────────────────────
+// ─── Creation flow types (client-side state) ──────────────────────────────────
 
 export interface EditableItem extends OcrItem {
   is_manually_added: boolean
 }
 
 export interface ParticipantDraft {
-  id: string      // uuid generado en cliente
+  id: string      // uuid generated on the client
   nombre: string
   orden: number
 }
 
 export interface AssignmentDraft {
   item_id: string
-  participant_ids: string[]       // IDs de participantes asignados a este ítem
-  quantities?: Record<string, number>  // Para ítems con cantidad>1: cuántas unidades tuvo cada participante
+  participant_ids: string[]       // IDs of participants assigned to this item
+  quantities?: Record<string, number>  // For items with cantidad>1: how many units each participant had
 }
 
-// ─── Tipo para la vista pública ───────────────────────────────────────────────
+// ─── Public view type ─────────────────────────────────────────────────────────
 
 export interface BillPublicView {
   bill: Bill
@@ -106,7 +106,7 @@ export interface BillPublicView {
   assignments: Assignment[]
 }
 
-// ─── Resumen calculado por persona ───────────────────────────────────────────
+// ─── Calculated per-person summary ────────────────────────────────────────────
 
 export interface PersonSummary {
   participant: Participant

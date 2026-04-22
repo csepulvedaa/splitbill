@@ -1,89 +1,100 @@
 # Changelog
 
-Todos los cambios relevantes de SplitBill se documentan aquí.
-Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
+All notable changes to SplitBill are documented here.
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-21
+
+### Added
+- **OCR provider cascade**: Groq (Llama 4 Scout, primary, free tier 14.4K req/day) → Gemini 2.5 Flash (fallback 1) → OpenAI GPT-4o (fallback 2). Expected cost: $0 for personal use.
+- `src/lib/vision-client.ts`: abstraction layer that tries each provider in order and returns the first successful result.
+- `GROQ_API_KEY` and `GEMINI_API_KEY` environment variables.
+
+### Changed
+- All Spanish code comments translated to English.
+- `README.md` and `CHANGELOG.md` translated to English (international portfolio).
+
 ## [0.4.2] - 2026-04-21
 
 ### Fixed
-- `site.webmanifest`: corregido nombre ("SplitBill"), `theme_color` (#f43f5e) y `background_color` (#FFF7F7) — el merge anterior no incluyó estos cambios.
-- Banner del home: reemplaza ícono `Receipt` por `favicon.svg`.
-- `metadataBase` apunta a `https://splitbill.cl` para URLs absolutas en metadata.
+- `site.webmanifest`: corrected name ("SplitBill"), `theme_color` (#f43f5e) and `background_color` (#FFF7F7) — not included in previous merge.
+- Home banner: replaced generic `Receipt` icon with `favicon.svg`.
+- `metadataBase` points to `https://splitbill.cl` for correct absolute URLs in metadata.
 
 ## [0.4.1] - 2026-04-21
 
 ### Added
-- **Favicon completo**: icono SVG, PNG 96×96, ICO, apple-touch-icon, y manifests para PWA (192×192 y 512×512) generados con RealFaviconGenerator.
+- **Full favicon set**: SVG icon, PNG 96×96, ICO, apple-touch-icon, and PWA manifests (192×192 and 512×512) generated with RealFaviconGenerator.
 
 ## [0.4.0] - 2026-04-21
 
 ### Added
-- **Identidad anónima por dispositivo**: se genera un UUID en `localStorage` como `device_id`. Cada cuenta nueva se asocia a ese ID, y el historial solo muestra las cuentas del dispositivo actual. Preparado para vincularse a un usuario real en el futuro.
+- **Anonymous device identity**: a UUID is generated in `localStorage` as `device_id`. Each new bill is associated with that ID, and the home feed only shows bills from the current device. Ready to be linked to a real user in the future.
 
 ### Migration
-- Ejecutar `supabase/migrations/20260421_add_device_id.sql` en Supabase: agrega columna `device_id TEXT` e índice a la tabla `bills`.
+- Run `supabase/migrations/20260421_add_device_id.sql` in Supabase: adds `device_id TEXT` column and index to the `bills` table.
 
 ## [0.3.2] - 2026-04-20
 
 ### Fixed
-- **Resumen ÷N**: ahora muestra el total del ítem (`÷5 de $12.000`) para que sea claro qué se está dividiendo.
-- **Asignaciones multi-unidad al editar**: al editar una cuenta existente, los contadores de + y - ahora se pre-cargan con las cantidades guardadas (antes siempre aparecían en 0).
-- **Total en inicio tras edición**: `total_declared` se preserva en el draft al editar. Para cuentas con `total_declared = null`, el historial ahora calcula el total sumando los ítems directamente.
+- **Summary ÷N**: now shows the item total (`÷5 of $12,000`) so it is clear what is being divided.
+- **Multi-unit assignments on edit**: when editing an existing bill, the +/- counters are now pre-loaded with the saved quantities (previously always showed 0).
+- **Home total after edit**: `total_declared` is preserved in the draft during edit so it is not lost on save.
 
 ## [0.3.1] - 2026-04-20
 
 ### Added
-- **Nombre del restaurante editable**: campo de texto en la revisión de ítems para nombrar la cuenta. Se guarda en el draft y persiste al editar.
+- **Editable restaurant name**: text field in the item review screen to name the bill. Saved in draft and persisted on edit.
 
 ### Fixed
-- **Pills de asignación**: estado no-seleccionado ahora es gris neutro para todos los participantes (antes cada uno tenía un color distinto del arcoíris).
-- **Persistencia de asignaciones al editar**: al volver a la pantalla de participantes, las asignaciones ya existentes se conservan (se filtran si se elimina un participante, no se borran todas).
-- **Nombre del restaurante en edición**: al entrar al flujo de edición, el nombre del restaurante se pre-carga desde la cuenta guardada.
+- **Assignment pills**: unselected state is now a neutral gray for all participants (previously each had a different rainbow color).
+- **Assignment persistence on edit**: when returning to the participants screen, existing assignments are preserved (filtered if a participant is removed, not fully cleared).
+- **Restaurant name on edit**: entering the edit flow pre-loads the restaurant name from the saved bill.
 
 ## [0.3.0] - 2026-04-20
 
 ### Added
-- **Marcar como liquidada**: botón en la vista pública para marcar una cuenta como pagada. Muestra badge "✅ Liquidada" en el header y en el historial de inicio.
-- **Edición completa de cuenta**: botón "Editar" en la vista pública que carga la cuenta existente en el flujo de edición (ítems → participantes → asignaciones → resumen). Soporta reconstrucción de asignaciones por cantidad para ítems multi-unidad.
-- Endpoint `PATCH /api/bills/[id]` para liquidar y para edición completa (delete + reinsert).
-- Página `/b/[id]/edit` con `EditLoader` que hidrata el sessionStorage desde la BD.
+- **Mark as settled**: button in the public view to mark a bill as paid. Shows "✅ Settled" badge in the header and in the home history.
+- **Full bill editing**: "Edit" button in the public view loads the existing bill into the editing flow (items → participants → assignments → summary). Supports assignment reconstruction by quantity for multi-unit items.
+- `PATCH /api/bills/[id]` endpoint for settling and full editing (delete + reinsert).
+- `/b/[id]/edit` page with `EditLoader` that hydrates sessionStorage from the DB.
 
 ### Changed
-- Tema aplicado consistentemente en todas las páginas: gradiente rose→orange en headers, fondo `#FFF7F7`, CTAs con gradiente. Anteriormente solo assign y summary tenían el nuevo tema.
-- Historial en home muestra badge verde "Liquidada" para cuentas con `status = 'liquidada'`.
-- `revalidate = 0` en `/b/[id]` para reflejar cambios de estado inmediatamente.
+- Theme applied consistently across all pages: rose→orange gradient in headers, `#FFF7F7` background, gradient CTAs.
+- Home history shows green "Settled" badge for bills with `status = 'liquidada'`.
+- `revalidate = 0` on `/b/[id]` to reflect status changes immediately.
 
 ## [0.2.0] - 2026-04-20
 
 ### Added
-- Asignación por cantidad para ítems con `cantidad > 1` (ej. "3 cervezas" → contador por persona)
-- Paleta de colores nueva: gradiente rose-to-orange, avatares con colores únicos por persona
-- Emojis en la UI para mejorar legibilidad visual
-- Fuente Geist cargando correctamente (fix de variable CSS circular)
+- Per-quantity assignment for items with `cantidad > 1` (e.g. "3 beers" → counter per person)
+- New color palette: rose-to-orange gradient, unique avatar colors per person
+- Emojis in UI for improved visual readability
+- Geist font loading correctly (fix for circular CSS variable)
 
 ### Fixed
-- Bug donde el precio total de cada ítem se cobraba a todos los participantes en lugar de dividirse
-- Error `invalid input syntax for type uuid: "1"` al guardar — los IDs del OCR ahora se remapean a UUIDs válidos antes de insertar en Supabase
-- Remapeo correcto de `item_id` en asignaciones al guardar
+- Bug where each item's total price was charged to all participants instead of being split
+- `invalid input syntax for type uuid: "1"` error on save — OCR item IDs are now remapped to valid UUIDs before inserting into Supabase
+- Correct remapping of `item_id` in assignments on save
 
 ### Changed
-- Página de asignación rediseñada con header degradado, cards con borde de color por estado
-- Página de resumen rediseñada con cards por persona y totales destacados
+- Assignment page redesigned with gradient header, color-bordered cards by state
+- Summary page redesigned with per-person cards and highlighted totals
 
 ---
 
 ## [0.1.0] - 2026-04-20
 
 ### Added
-- Flujo completo: foto → OCR → revisión → participantes → asignación → resumen → link compartible
-- OCR con GPT-4o Vision para extraer ítems de boletas
-- Split equitativo de ítems entre participantes seleccionados
-- Toggle de propina 10% en resumen
-- Vista pública compartible por link (`/b/[id]`)
-- Historial de cuentas en la página de inicio
-- Rate limiting básico en endpoint OCR (10 requests / 5 min por IP)
-- Soporte PWA (manifest, apple-touch-icon, viewport fit cover)
+- Full flow: photo → OCR → review → participants → assignment → summary → shareable link
+- OCR with GPT-4o Vision to extract items from receipts
+- Equal split of items among selected participants
+- 10% tip toggle in summary
+- Public shareable view via link (`/b/[id]`)
+- Bill history on home screen
+- Basic rate limiting on OCR endpoint (10 requests / 5 min per IP)
+- PWA support (manifest, apple-touch-icon, viewport fit cover)

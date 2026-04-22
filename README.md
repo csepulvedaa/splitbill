@@ -1,63 +1,71 @@
 # 🧾 SplitBill
 
-Divide la cuenta del restaurante entre tus amigos sin dramas.
+Split restaurant bills with friends — no drama.
 
-## ¿Qué hace?
+## What it does
 
-1. **Foto → OCR** — Saca una foto de la boleta y GPT-4o extrae los ítems automáticamente
-2. **Revisa ítems** — Edita nombres, precios o agrega ítems manuales
-3. **Agrega participantes** — Quiénes van a pagar
-4. **Asigna ítems** — Elige quién pidió qué. Para ítems con cantidad > 1 (ej. 3 cervezas) se asignan unidades individuales a cada persona
-5. **Resumen y propina** — Vista por persona con toggle de propina 10%
-6. **Comparte** — Link público o copia como texto para el grupo de WhatsApp
+1. **Photo → OCR** — Take a photo of the receipt; the AI extracts items automatically (Groq → Gemini → OpenAI cascade)
+2. **Review items** — Edit names, prices, or add items manually
+3. **Add participants** — Who's paying
+4. **Assign items** — Choose who ordered what. Items with quantity > 1 (e.g. 3 beers) are assigned per unit per person
+5. **Summary & tip** — Per-person breakdown with a 10% tip toggle
+6. **Share** — Public link or copy as plain text for the WhatsApp group
 
 ## Stack
 
-- **Framework**: Next.js 15 (App Router)
-- **Base de datos**: Supabase (PostgreSQL)
-- **OCR**: OpenAI GPT-4o Vision
-- **UI**: Tailwind CSS + shadcn/ui
-- **Deploy**: Vercel
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 15 (App Router) |
+| Database | Supabase (PostgreSQL) |
+| OCR | Groq (Llama 4 Scout) → Gemini 2.5 Flash → OpenAI GPT-4o |
+| UI | Tailwind CSS + shadcn/ui |
+| Deploy | Vercel |
 
-## Variables de entorno
+## Environment variables
 
 ```env
+# OCR providers — cascade: Groq (primary) → Gemini (fallback 1) → OpenAI (fallback 2)
+GROQ_API_KEY=
+GEMINI_API_KEY=
 OPENAI_API_KEY=
+
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-## Desarrollo local
+## Local development
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# Rellena las variables en .env.local
+# Fill in the variables in .env.local
 npm run dev
 ```
 
-## Estructura
+## Project structure
 
 ```
 src/
 ├── app/
-│   ├── new/              # Captura de foto
+│   ├── new/                  # Photo capture
 │   ├── receipt/
-│   │   ├── review/       # Revisión de ítems OCR
-│   │   ├── participants/ # Agregar participantes
-│   │   ├── assign/       # Asignar ítems
-│   │   └── summary/      # Resumen final
-│   ├── b/[id]/           # Vista pública compartible
+│   │   ├── review/           # OCR item review & editing
+│   │   ├── participants/     # Add participants
+│   │   ├── assign/           # Assign items to people
+│   │   └── summary/          # Final summary + save
+│   ├── b/[id]/               # Public shareable bill view
 │   └── api/
-│       ├── analyze-receipt/  # Endpoint OCR
-│       └── bills/            # CRUD cuentas
+│       ├── analyze-receipt/  # OCR endpoint (provider cascade)
+│       └── bills/            # Bills CRUD
 ├── lib/
-│   ├── calculations.ts   # Lógica de split
-│   ├── store.ts          # Estado en sessionStorage
-│   └── types.ts          # Tipos TypeScript
+│   ├── vision-client.ts      # OCR cascade: Groq → Gemini → OpenAI
+│   ├── calculations.ts       # Split & tip calculation logic
+│   ├── store.ts              # sessionStorage draft state
+│   └── types.ts              # TypeScript types
 ```
 
-## Contribuir
+## Contributing
 
-**Todo PR debe incluir una entrada en `CHANGELOG.md`** — hay un check automático que lo verifica y bloquea el merge si no está actualizado.
+**Every PR must include an entry in `CHANGELOG.md`** — an automated GitHub Actions check blocks the merge if it is missing.

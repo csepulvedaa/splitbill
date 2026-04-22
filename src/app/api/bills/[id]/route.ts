@@ -5,8 +5,8 @@ import type { Item, Participant, Assignment } from '@/lib/types'
 type RouteContext = { params: Promise<{ id: string }> }
 
 // PATCH /api/bills/[id]
-// body: { action: 'settle' }  →  marca como liquidada
-// body: { bill, items, participants, assignments }  →  reemplaza todo
+// body: { action: 'settle' }  →  marks bill as settled
+// body: { bill, items, participants, assignments }  →  full replacement
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const { id } = await params
   let body: Record<string, unknown>
@@ -16,7 +16,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: 'Request inválido.' }, { status: 400 })
   }
 
-  // ── Liquidar cuenta ────────────────────────────────────────────────────────
+  // ── Settle bill ────────────────────────────────────────────────────────────
   if (body.action === 'settle') {
     const { error } = await supabaseAdmin
       .from('bills')
@@ -29,7 +29,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ ok: true })
   }
 
-  // ── Edición completa ───────────────────────────────────────────────────────
+  // ── Full edit ──────────────────────────────────────────────────────────────
   const { bill, items, participants, assignments } = body as {
     bill: Record<string, unknown>
     items: Omit<Item, 'bill_id'>[]
@@ -37,7 +37,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     assignments: Assignment[]
   }
 
-  // Actualizar metadatos del bill
+  // Update bill metadata
   const { error: billError } = await supabaseAdmin
     .from('bills')
     .update(bill)
@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: 'Error al actualizar la cuenta.' }, { status: 500 })
   }
 
-  // Obtener IDs de ítems actuales para borrar sus asignaciones
+  // Fetch current item IDs to delete their assignments first
   const { data: oldItems } = await supabaseAdmin
     .from('items')
     .select('id')
@@ -60,7 +60,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   await supabaseAdmin.from('items').delete().eq('bill_id', id)
   await supabaseAdmin.from('participants').delete().eq('bill_id', id)
 
-  // Re-insertar con IDs remapeados (por si vienen IDs del OCR como "1", "2")
+  // Re-insert with remapped IDs (OCR may return non-UUID ids like "1", "2")
   const itemIdMap = new Map<string, string>()
   const newItems = items.map((item) => {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id)

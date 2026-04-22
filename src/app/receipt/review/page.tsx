@@ -71,7 +71,7 @@ export default function ReviewPage() {
   function handleContinue() {
     const draft = getDraft()
     if (!draft) return
-    // Validar que no haya ítems sin precio
+    // Validate that no items are missing a price
     const missing = items.filter((i) => i.precio_total == null || i.precio_total === 0)
     if (missing.length > 0 && !confirm(`Hay ${missing.length} ítem(s) sin precio. ¿Continuar de todas formas?`)) {
       return
@@ -102,7 +102,7 @@ export default function ReviewPage() {
         </div>
       </header>
 
-      {/* Banners de advertencia OCR */}
+      {/* OCR warning banners */}
       {ocrConfidence !== 'alta' && (
         <div
           className={`mx-4 mt-4 flex items-start gap-3 rounded-2xl p-3.5 text-sm ${
@@ -130,7 +130,7 @@ export default function ReviewPage() {
         </div>
       )}
 
-      {/* Nombre del restaurante */}
+      {/* Restaurant name */}
       <div className="mx-4 mt-4">
         <label className="text-xs text-slate-400 mb-1 block">Nombre del restaurante (opcional)</label>
         <input
@@ -143,7 +143,7 @@ export default function ReviewPage() {
         />
       </div>
 
-      {/* Lista de ítems */}
+      {/* Item list */}
       <div className="flex-1 px-4 mt-4 space-y-2 pb-4">
         {items.map((item) => (
           <div
@@ -156,7 +156,7 @@ export default function ReviewPage() {
           >
             <div className="flex items-start gap-3">
               <div className="flex-1 space-y-2">
-                {/* Nombre */}
+                {/* Name */}
                 <input
                   type="text"
                   value={item.nombre}
@@ -165,7 +165,7 @@ export default function ReviewPage() {
                   className="w-full text-slate-900 font-medium bg-transparent focus:outline-none border-b border-transparent focus:border-slate-200 pb-0.5"
                 />
                 <div className="flex gap-3">
-                  {/* Cantidad */}
+                  {/* Quantity */}
                   <div className="flex-none">
                     <label className="text-xs text-slate-400">Cantidad</label>
                     <input
@@ -177,7 +177,7 @@ export default function ReviewPage() {
                       className="w-16 text-slate-700 bg-transparent focus:outline-none border-b border-transparent focus:border-slate-200 text-sm"
                     />
                   </div>
-                  {/* Precio unitario */}
+                  {/* Unit price */}
                   <div className="flex-1">
                     <label className="text-xs text-slate-400">Precio unitario</label>
                     <input
@@ -189,7 +189,7 @@ export default function ReviewPage() {
                       className="w-full text-slate-700 bg-transparent focus:outline-none border-b border-transparent focus:border-slate-200 text-sm"
                     />
                   </div>
-                  {/* Precio total */}
+                  {/* Total price */}
                   <div className="flex-1">
                     <label className="text-xs text-slate-400">Total</label>
                     <p className="text-sm font-semibold text-slate-900">
@@ -215,7 +215,7 @@ export default function ReviewPage() {
           </div>
         ))}
 
-        {/* Agregar ítem */}
+        {/* Add item */}
         <button
           onClick={addItem}
           className="w-full flex items-center justify-center gap-2 py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 hover:border-slate-300 hover:text-slate-500 transition-colors"
@@ -224,7 +224,7 @@ export default function ReviewPage() {
           <span className="text-sm font-medium">Agregar ítem manualmente</span>
         </button>
 
-        {/* Validación de totales */}
+        {/* Totals validation */}
         <div className="bg-slate-50 rounded-2xl p-4 space-y-1 text-sm">
           <div className="flex justify-between text-slate-600">
             <span>Suma de ítems</span>
@@ -251,7 +251,7 @@ export default function ReviewPage() {
         )}
       </div>
 
-      {/* CTA fijo */}
+      {/* Sticky CTA */}
       <div className="sticky bottom-0 px-4 py-3 safe-bottom" style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}>
         <Button
           onClick={handleContinue}

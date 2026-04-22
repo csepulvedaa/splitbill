@@ -137,7 +137,7 @@ export default function AssignPage() {
 
   return (
     <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
-      {/* Header con gradiente */}
+      {/* Gradient header */}
       <header
         className="safe-top px-5 pt-5 pb-5"
         style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}
@@ -180,7 +180,7 @@ export default function AssignPage() {
         </div>
       </header>
 
-      {/* Lista de ítems */}
+      {/* Item list */}
       <div className="flex-1 px-4 py-4 space-y-3 pb-28">
         {items.map((item) => {
           const isAssigned = isItemAssigned(item)
@@ -210,7 +210,7 @@ export default function AssignPage() {
                 borderLeft: `4px solid ${isAssigned ? '#4ade80' : '#fda4af'}`,
               }}
             >
-              {/* Info del ítem */}
+              {/* Item info */}
               <div className="px-5 pt-4 pb-3 flex justify-between items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-slate-900 text-base leading-snug">
@@ -253,7 +253,7 @@ export default function AssignPage() {
 
               <div className="h-px mx-5" style={{ background: '#F1F5F9' }} />
 
-              {/* Participantes */}
+              {/* Participants */}
               <div className="px-5 py-3.5">
                 {isMultiUnit ? (
                   <div className="space-y-2.5">
@@ -373,7 +373,7 @@ export default function AssignPage() {
         })}
       </div>
 
-      {/* CTA fijo */}
+      {/* Sticky CTA */}
       <div className="sticky bottom-0 px-4 py-3 safe-bottom" style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}>
         <button
           onClick={handleContinue}

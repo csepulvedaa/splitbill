@@ -37,7 +37,7 @@ export default function NewPage() {
 
     setProcessing(true)
 
-    // Rotar mensajes
+    // Rotate status messages
     let msgIdx = 0
     const interval = setInterval(() => {
       msgIdx = (msgIdx + 1) % MESSAGES.length
@@ -136,7 +136,7 @@ export default function NewPage() {
           <span className="text-base font-semibold">Subir desde galería</span>
         </button>
 
-        {/* Inputs ocultos */}
+        {/* Hidden file inputs */}
         <input
           ref={cameraInputRef}
           type="file"
