@@ -241,26 +241,21 @@ Esto simplifica enormemente el MVP: desaparece toda la complejidad de "el usuari
 | **Mistral** | Pixtral 12B | 1B tokens/mes | 2 | Alto | 200-500ms | Buena | No |
 | **OpenAI** | GPT-4o | No | — | — | 1-3s | Excelente | — |
 
-## Decisión para el MVP
+## Decisión implementada (Abril 2026)
 
-**Modelo principal: Groq + Llama 4 Scout**
-- Tier gratuito más generoso para uso personal: 14.400 requests/día, 30 RPM.
-- Latencia excelente (50-200ms): la respuesta más rápida disponible.
-- Sin tarjeta de crédito requerida.
-- Suficiente para decenas de cenas por día sin gastar nada.
+**Modelo principal: Google Gemini Flash (`gemini-flash-latest`)**
+- Llamada directa a la API nativa de Gemini (`generateContent?key=...`), no al endpoint OpenAI-compatible (que daba 404 con esta API key).
+- Costo: gratuito dentro del free tier de Google AI Studio.
+- Precisión OCR excelente (96%).
 
-**Fallback: Google Gemini 2.5 Flash**
-- Si Groq falla o llega al límite, Gemini entra automáticamente.
-- Compatible con el SDK de OpenAI (cambio mínimo de código): solo cambiar `baseURL` y `apiKey`.
-- Free tier limitado (50 req/día post-Abril 2026), suficiente como respaldo.
-- Mayor precisión OCR documentada (96%).
+**Fallback: OpenAI GPT-4o**
+- API Key personal configurada como variable de entorno.
+- Solo se usa si Gemini falla.
+- Costo: ~$0.001-0.005 por imagen. Irrelevante para uso personal.
 
-**Fallback final: OpenAI GPT-4o**
-- Tu API Key personal, configurada como variable de entorno adicional.
-- Solo se usa si Groq y Gemini fallan.
-- Costo: ~$0.001-0.005 por imagen. Para uso personal es irrelevante.
+**Groq eliminado**: requiere cargar créditos (no es verdaderamente gratuito). Se retiró de la cascada.
 
-Esta estrategia de cascada hace que el costo sea **$0 en el 99% de los casos** para uso personal, con OpenAI como red de seguridad.
+Vars de entorno: `GEMINI_API_KEY`, `OPENAI_API_KEY` — configuradas en Vercel y `.env.local`.
 
 ## Arquitectura de procesamiento
 
@@ -610,43 +605,43 @@ monto_asignado  numeric NOT NULL
 
 # 11. BACKLOG PRIORIZADO
 
-| ID | Funcionalidad | Prioridad | Fase |
-|----|--------------|-----------|------|
-| F01 | Captura de imagen (cámara + galería) | P0 | 1 |
-| F02 | Compresión de imagen en cliente (Canvas API) | P0 | 1 |
-| F03 | Endpoint POST /api/analyze-receipt con cascada de modelos | P0 | 1 |
-| F04 | Integración Groq (Llama 4 Scout) como modelo primario | P0 | 1 |
-| F05 | Fallback a Gemini 2.5 Flash | P0 | 1 |
-| F06 | Fallback a OpenAI GPT-4o | P0 | 1 |
-| F07 | Pantalla de procesamiento con progreso y mensajes cambiantes | P0 | 1 |
-| F08 | Vista de revisión de ítems editable | P0 | 1 |
-| F09 | Agregar/eliminar ítems manualmente | P0 | 1 |
-| F10 | Gestión de participantes (nombre) | P0 | 1 |
-| F11 | Pantalla de asignación de ítems | P0 | 1 |
-| F12 | Asignación individual (1→1) | P0 | 1 |
-| F13 | Asignación compartida (1→N, equitativa) | P0 | 1 |
-| F14 | Toggle propina 10% | P0 | 1 |
-| F15 | Pantalla de resumen final | P0 | 1 |
-| F16 | Persistencia en Supabase (guardar cuenta) | P0 | 1 |
-| F17 | Link compartible único (/b/[id]) | P0 | 1 |
-| F18 | Vista pública del resumen (solo lectura) | P0 | 1 |
-| F19 | Copiar resumen al portapapeles | P0 | 1 |
-| F20 | Historial de cuentas en pantalla de inicio | P0 | 1 |
-| F21 | Manifest PWA + íconos iOS | P0 | 1 |
-| F22 | Validación OCR (suma vs subtotal) | P0 | 1 |
-| F23 | Rate limiting por IP | P0 | 1 |
-| F24 | Vista pública con ?para=Nombre (monto resaltado) | P1 | 1 |
-| F25 | Web Share API + fallback link WhatsApp | P1 | 2 |
-| F26 | Marcar transferencia como recibida | P1 | 2 |
-| F27 | Separar ítem en N unidades | P1 | 2 |
-| F28 | Expiración configurable del link | P1 | 2 |
-| F29 | Soporte de formato de moneda local | P1 | 2 |
-| F30 | Modo oscuro | P2 | 2 |
-| F31 | Login para usuarios públicos (magic link) | P2 | 3 |
-| F32 | Modelo de costos para usuarios públicos | P2 | 3 |
-| F33 | Varios pagadores | P2 | 3 |
-| F34 | Exportar a imagen/PDF | P2 | 3 |
-| F35 | Integración links de pago | P2 | 4 |
+| ID | Funcionalidad | Prioridad | Fase | Estado |
+|----|--------------|-----------|------|--------|
+| F01 | Captura de imagen (cámara + galería) | P0 | 1 | ✅ |
+| F02 | Compresión de imagen en cliente (Canvas API) | P0 | 1 | ✅ |
+| F03 | Endpoint POST /api/analyze-receipt con cascada de modelos | P0 | 1 | ✅ |
+| F04 | Modelo primario: Gemini Flash (API nativa) | P0 | 1 | ✅ |
+| F05 | Fallback a OpenAI GPT-4o | P0 | 1 | ✅ |
+| F06 | ~~Fallback Groq~~ — eliminado (requiere créditos) | — | — | ❌ |
+| F07 | Pantalla de procesamiento con progreso y mensajes cambiantes | P0 | 1 | ✅ |
+| F08 | Vista de revisión de ítems editable | P0 | 1 | ✅ |
+| F09 | Agregar/eliminar ítems manualmente | P0 | 1 | ✅ |
+| F10 | Gestión de participantes (nombre) | P0 | 1 | ✅ |
+| F11 | Pantalla de asignación de ítems | P0 | 1 | ✅ |
+| F12 | Asignación individual (1→1) | P0 | 1 | ✅ |
+| F13 | Asignación compartida (1→N, equitativa y proporcional por unidades) | P0 | 1 | ✅ |
+| F14 | Toggle propina 10% | P0 | 1 | ✅ |
+| F15 | Pantalla de resumen final | P0 | 1 | ✅ |
+| F16 | Persistencia en Supabase (guardar cuenta) | P0 | 1 | ✅ |
+| F17 | Link compartible único (/b/[id]) | P0 | 1 | ✅ |
+| F18 | Vista pública del resumen (solo lectura) | P0 | 1 | ✅ |
+| F19 | Copiar resumen al portapapeles | P0 | 1 | ✅ |
+| F20 | Historial de cuentas en pantalla de inicio | P0 | 1 | ✅ |
+| F21 | Manifest PWA + íconos iOS | P0 | 1 | ✅ |
+| F22 | Validación OCR (suma vs subtotal) | P0 | 1 | ✅ |
+| F23 | Rate limiting por IP | P0 | 1 | ✅ |
+| F24 | Vista pública con ?para=Nombre (monto resaltado, auto-scroll, "Copiar mi monto") | P1 | 1 | ✅ PR#6 |
+| F25 | Web Share API + fallback WhatsApp (`wa.me/?text=`) | P1 | 2 | ✅ PR#7 |
+| F26 | Marcar transferencia como recibida | P1 | 2 | ⏳ |
+| F27 | Separar ítem en N unidades | P1 | 2 | ⏳ |
+| F28 | Expiración configurable del link | P1 | 2 | ⏳ |
+| F29 | Soporte de formato de moneda local | P1 | 2 | ⏳ |
+| F30 | Modo oscuro | P2 | 2 | ⏳ |
+| F31 | Login para usuarios públicos (magic link) | P2 | 3 | ⏳ |
+| F32 | Modelo de costos para usuarios públicos | P2 | 3 | ⏳ |
+| F33 | Varios pagadores | P2 | 3 | ⏳ |
+| F34 | Exportar a imagen/PDF | P2 | 3 | ⏳ |
+| F35 | Integración links de pago | P2 | 4 | ⏳ |
 
 ---
 

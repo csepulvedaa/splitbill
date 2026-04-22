@@ -69,7 +69,7 @@ src/
 │   └── supabase.ts                    # supabaseAdmin (service role) + anon client
 ```
 
-> ⚠️ There are stale duplicate files with " 2" suffix (`route 2.ts`, `EditLoader 2.tsx`, `page 2.tsx`, `identity 2.ts`). These are artifacts from copy operations and should be deleted — they are not imported anywhere.
+Duplicate files with " 2" suffix were deleted (PR #6). No stale artifacts remain.
 
 ---
 
@@ -92,7 +92,7 @@ assignments   id, item_id, participant_id, fraccion, monto_asignado
 RLS: public SELECT on all tables. INSERT/UPDATE/DELETE require service role key (server only).
 
 Migration pending in production: `supabase/migrations/20260421_add_device_id.sql`
-(adds `device_id TEXT` + index on `bills`).
+(adds `device_id TEXT` + index on `bills`). **Must be run manually in Supabase dashboard.**
 
 ---
 
@@ -133,10 +133,10 @@ Env vars: `GEMINI_API_KEY`, `OPENAI_API_KEY`. Both set in Vercel production and 
 
 ---
 
-## Implemented features (as of v0.5.0)
+## Implemented features (as of v0.7.0)
 
 - [x] Photo capture + Canvas compression
-- [x] OCR with Gemini → OpenAI cascade
+- [x] OCR with Gemini Flash → OpenAI GPT-4o cascade (native Gemini API)
 - [x] Editable item review (name, qty, price)
 - [x] Manual item add/delete
 - [x] Restaurant name input
@@ -148,40 +148,50 @@ Env vars: `GEMINI_API_KEY`, `OPENAI_API_KEY`. Both set in Vercel production and 
 - [x] Per-person summary with full breakdown
 - [x] Save to Supabase + shareable `/b/[id]` link
 - [x] Public read-only view
-- [x] Copy summary as plain text (for WhatsApp)
+- [x] Copy summary as plain text
 - [x] Bill history on home (last 20, filtered by device)
 - [x] Mark bill as settled (status: 'liquidada')
 - [x] Full bill editing (edit → re-enters flow → saves back)
 - [x] Anonymous device identity (bills private per device)
 - [x] PWA manifest + full favicon set + apple-touch-icon
 - [x] Rate limiting: 10 req / 5 min per IP
-- [x] Image size validation: 5MB max on server
+- [x] **F24** `?para=Nombre` — personal link highlights that person's card, auto-scrolls, shows "Copiar mi monto"
+- [x] **F25** Web Share API — native share sheet on iOS/Android; "Enviar por WhatsApp" fallback on desktop (PR #7, pending merge)
+
+## PR history
+
+| PR | Feature | Status |
+|----|---------|--------|
+| #1 | Theme, settle bill, full edit flow | Merged |
+| #2 | Anonymous device identity | Merged |
+| #3 | Favicon set | Merged |
+| #4 | Webmanifest fix, domain splitbill.cl | Merged |
+| #5 | OCR cascade (Gemini→OpenAI), English docs | Merged |
+| #6 | Per-person share links (?para=Nombre) | Merged |
+| #7 | Web Share API + WhatsApp fallback | **Open** |
 
 ---
 
 ## Pending / next features (from docs/Contexto.md)
 
-**P1 — High value, next phase:**
-- [ ] **F24** `?para=Nombre` — public view highlights the specific person's amount
-- [ ] **F25** Web Share API — native share sheet instead of copy/paste; WhatsApp link fallback
-- [ ] **F26** Mark individual transfers as received — owner marks each person as "paid"
-- [ ] **F27** Split item into N individual units — "3 cervezas" → 3 line items
-- [ ] **F28** Configurable link expiration — 24h / 7d / 30d / permanent
-- [ ] **F29** Multi-currency support with local formatting — CLP, USD, EUR, MXN
+**P1 — High value, next:**
+- [ ] **F26** Mark individual transfers as received — owner marks each person as paid within the bill view
+- [ ] **F27** Split item into N units — "3 cervezas" → assign per-unit; currently handled via +/− counters, but a "split into 3 items" shortcut would help
+- [ ] **F28** Configurable link expiration — currently no expiry; add 24h / 7d / 30d / permanent option
+- [ ] **F29** Multi-currency — OCR already detects currency; UI only formats CLP currently
 
 **P2 — Nice to have:**
-- [ ] **F30** Dark mode
-- [ ] **F31** Login for public users (magic link or Google) — Clerk or NextAuth
+- [ ] **F30** Dark mode (Tailwind `dark:`)
+- [ ] **F31** Login for public users — Clerk or NextAuth with magic link / Google
 - [ ] **F32** Cost model for public users — freemium / subscription
 - [ ] **F33** Multiple payers
 - [ ] **F34** Export to image/PDF
 - [ ] **F35** Payment link integration (Mercado Pago, etc.)
 
 **Technical debt:**
-- [ ] Delete duplicate files: `src/app/api/bills/[id]/route 2.ts`, `src/app/b/[id]/edit/EditLoader 2.tsx`, `src/app/b/[id]/edit/page 2.tsx`, `src/lib/identity 2.ts`
-- [ ] Run Supabase migration `20260421_add_device_id.sql` in production
-- [ ] Rate limiting with Upstash Redis (current in-memory impl resets on cold start)
-- [ ] Manual item entry fallback when OCR fails completely (currently only error message shown)
+- [ ] Run Supabase migration `20260421_add_device_id.sql` in production (manual step in Supabase dashboard)
+- [ ] Rate limiting with Upstash Redis — current in-memory map resets on Vercel cold start
+- [ ] Manual item entry fallback when OCR fails completely (currently only shows error message)
 
 ---
 
