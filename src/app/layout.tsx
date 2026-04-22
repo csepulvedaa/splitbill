@@ -6,6 +6,7 @@ import './globals.css'
 const geist = Geist({ variable: '--font-geist', subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://splitbill.cl'),
   title: 'SplitBill',
   description: 'Divide la cuenta del restaurante entre tus amigos',
   manifest: '/site.webmanifest',

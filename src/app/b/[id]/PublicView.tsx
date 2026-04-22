@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2 } from 'lucide-react'
@@ -97,20 +98,25 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   return (
     <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
       <header className="safe-top px-5 pt-5 pb-5" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-white tracking-tight">🧾 SplitBill</h1>
-              {isSettled && (
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)', color: '#fff' }}>
-                  ✅ Liquidada
-                </span>
-              )}
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+              <Image src="/favicon-96x96.png" alt="SplitBill" width={28} height={28} />
             </div>
-            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              {bill.restaurant ?? 'División de cuenta'} · {new Date(bill.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
-            </p>
-          </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl font-bold text-white tracking-tight">SplitBill</h1>
+                {isSettled && (
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)', color: '#fff' }}>
+                    ✅ Liquidada
+                  </span>
+                )}
+              </div>
+              <p className="text-sm truncate" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                {bill.restaurant ?? 'División de cuenta'} · {new Date(bill.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
+              </p>
+            </div>
+          </Link>
           <div className="text-right shrink-0">
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>Total</p>
             <p className="font-black text-xl text-white">{formatCurrency(grandTotal, currency)}</p>
