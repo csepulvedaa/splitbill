@@ -16,71 +16,80 @@ Rules:
 - Always use period as decimal separator and no thousands separator in JSON numbers.
 - Respond ONLY with valid JSON, no additional text.
 
-Output the following JSON structure exactly:
+Output the following JSON structure exactly (replace example values with real extracted data):
 {
   "items": [
     {
       "id": "1",
-      "nombre": "string",
+      "nombre": "Hamburguesa",
       "cantidad": 1,
-      "precio_unitario": number | null,
-      "precio_total": number | null,
-      "confianza_item": "alta" | "media" | "baja",
+      "precio_unitario": 5900,
+      "precio_total": 5900,
+      "confianza_item": "alta",
       "nota_item": null
     }
   ],
-  "subtotal": number | null,
+  "subtotal": 5900,
   "impuestos": { "detectados": false, "monto": null, "descripcion": null },
   "propina_detectada": { "incluida": false, "monto": null, "porcentaje": null, "descripcion": null },
-  "total": number | null,
+  "total": 5900,
   "moneda": "CLP",
-  "confianza_general": "alta" | "media" | "baja",
+  "confianza_general": "alta",
   "notas_ocr": [],
   "idioma_cuenta": "es"
-}`
+}
+- For prices use numbers (e.g. 1500) or null if illegible, never strings.
+- For confianza_item and confianza_general use only: "alta", "media", or "baja".`
 
-// ─── Provider definitions ─────────────────────────────────────────────────────
+// ─── Gemini native API ────────────────────────────────────────────────────────
 
-interface Provider {
-  name: string
-  model: string
-  baseURL?: string
-  apiKey: string | undefined
+async function callGemini(apiKey: string, image: string): Promise<OcrResult> {
+  // Parse data URL: "data:image/jpeg;base64,<data>"
+  const commaIdx = image.indexOf(',')
+  const mimeType = image.slice(5, image.indexOf(';'))
+  const b64data = image.slice(commaIdx + 1)
+
+  const body = {
+    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents: [
+      {
+        parts: [
+          { inline_data: { mime_type: mimeType, data: b64data } },
+          { text: 'Extract all items and totals from this receipt. Return only valid JSON.' },
+        ],
+      },
+    ],
+    generationConfig: { maxOutputTokens: 8192 },
+  }
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+  )
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Gemini HTTP ${res.status}: ${text}`)
+  }
+
+  const data = await res.json()
+  const raw: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  const jsonMatch = raw.match(/\{[\s\S]*\}/)
+  if (!jsonMatch) throw new Error('Gemini: no JSON found in response')
+
+  const result: OcrResult = JSON.parse(jsonMatch[0])
+  if (!Array.isArray(result.items)) throw new Error('Gemini: missing items array')
+
+  return result
 }
 
-function getProviders(): Provider[] {
-  return [
-    {
-      name: 'Groq',
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      baseURL: 'https://api.groq.com/openai/v1',
-      apiKey: process.env.GROQ_API_KEY,
-    },
-    {
-      name: 'Gemini',
-      model: 'gemini-2.5-flash-preview-04-17',
-      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
-      apiKey: process.env.GEMINI_API_KEY,
-    },
-    {
-      name: 'OpenAI',
-      model: 'gpt-4o',
-      baseURL: undefined, // uses default OpenAI base URL
-      apiKey: process.env.OPENAI_API_KEY,
-    },
-  ]
-}
+// ─── OpenAI call ─────────────────────────────────────────────────────────────
 
-// ─── Core call ────────────────────────────────────────────────────────────────
-
-async function callProvider(provider: Provider, image: string): Promise<OcrResult> {
-  const client = new OpenAI({
-    apiKey: provider.apiKey!,
-    ...(provider.baseURL ? { baseURL: provider.baseURL } : {}),
-  })
+async function callOpenAI(apiKey: string, image: string): Promise<OcrResult> {
+  const client = new OpenAI({ apiKey })
 
   const response = await client.chat.completions.create({
-    model: provider.model,
+    model: 'gpt-4o',
     max_tokens: 2000,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -96,10 +105,10 @@ async function callProvider(provider: Provider, image: string): Promise<OcrResul
 
   const raw = response.choices[0]?.message?.content ?? ''
   const jsonMatch = raw.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error(`${provider.name}: no JSON found in response`)
+  if (!jsonMatch) throw new Error('OpenAI: no JSON found in response')
 
   const result: OcrResult = JSON.parse(jsonMatch[0])
-  if (!Array.isArray(result.items)) throw new Error(`${provider.name}: missing items array`)
+  if (!Array.isArray(result.items)) throw new Error('OpenAI: missing items array')
 
   return result
 }
@@ -107,23 +116,28 @@ async function callProvider(provider: Provider, image: string): Promise<OcrResul
 // ─── Cascade ──────────────────────────────────────────────────────────────────
 
 /**
- * Tries each provider in order (Groq → Gemini → OpenAI).
+ * Tries Gemini first, falls back to OpenAI.
  * Skips providers with no API key configured.
  * Throws if all available providers fail.
  */
 export async function analyzeReceipt(image: string): Promise<OcrResult> {
-  const providers = getProviders().filter((p) => !!p.apiKey)
+  const providers: Array<{ name: string; apiKey: string | undefined; call: (key: string) => Promise<OcrResult> }> = [
+    { name: 'Gemini', apiKey: process.env.GEMINI_API_KEY, call: (k) => callGemini(k, image) },
+    { name: 'OpenAI', apiKey: process.env.OPENAI_API_KEY, call: (k) => callOpenAI(k, image) },
+  ]
 
-  if (providers.length === 0) {
-    throw new Error('No OCR provider configured. Set GROQ_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY.')
+  const available = providers.filter((p) => !!p.apiKey)
+
+  if (available.length === 0) {
+    throw new Error('No OCR provider configured. Set GEMINI_API_KEY or OPENAI_API_KEY.')
   }
 
   const errors: string[] = []
 
-  for (const provider of providers) {
+  for (const provider of available) {
     try {
-      console.log(`[OCR] Trying ${provider.name} (${provider.model})`)
-      const result = await callProvider(provider, image)
+      console.log(`[OCR] Trying ${provider.name}`)
+      const result = await provider.call(provider.apiKey!)
       console.log(`[OCR] Success with ${provider.name}`)
       return result
     } catch (err) {

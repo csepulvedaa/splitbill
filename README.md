@@ -4,7 +4,7 @@ Split restaurant bills with friends — no drama.
 
 ## What it does
 
-1. **Photo → OCR** — Take a photo of the receipt; the AI extracts items automatically (Groq → Gemini → OpenAI cascade)
+1. **Photo → OCR** — Take a photo of the receipt; the AI extracts items automatically (Gemini → OpenAI cascade)
 2. **Review items** — Edit names, prices, or add items manually
 3. **Add participants** — Who's paying
 4. **Assign items** — Choose who ordered what. Items with quantity > 1 (e.g. 3 beers) are assigned per unit per person
@@ -17,15 +17,14 @@ Split restaurant bills with friends — no drama.
 |-------|-----------|
 | Framework | Next.js 15 (App Router) |
 | Database | Supabase (PostgreSQL) |
-| OCR | Groq (Llama 4 Scout) → Gemini 2.5 Flash → OpenAI GPT-4o |
+| OCR | Gemini Flash (primary) → OpenAI GPT-4o (fallback) |
 | UI | Tailwind CSS + shadcn/ui |
 | Deploy | Vercel |
 
 ## Environment variables
 
 ```env
-# OCR providers — cascade: Groq (primary) → Gemini (fallback 1) → OpenAI (fallback 2)
-GROQ_API_KEY=
+# OCR providers — cascade: Gemini (primary) → OpenAI (fallback)
 GEMINI_API_KEY=
 OPENAI_API_KEY=
 
@@ -60,7 +59,7 @@ src/
 │       ├── analyze-receipt/  # OCR endpoint (provider cascade)
 │       └── bills/            # Bills CRUD
 ├── lib/
-│   ├── vision-client.ts      # OCR cascade: Groq → Gemini → OpenAI
+│   ├── vision-client.ts      # OCR cascade: Gemini → OpenAI
 │   ├── calculations.ts       # Split & tip calculation logic
 │   ├── store.ts              # sessionStorage draft state
 │   └── types.ts              # TypeScript types

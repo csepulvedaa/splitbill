@@ -10,13 +10,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.5.0] - 2026-04-21
 
 ### Added
-- **OCR provider cascade**: Groq (Llama 4 Scout, primary, free tier 14.4K req/day) → Gemini 2.5 Flash (fallback 1) → OpenAI GPT-4o (fallback 2). Expected cost: $0 for personal use.
+- **OCR provider cascade**: Gemini Flash (primary, `gemini-flash-latest`) → OpenAI GPT-4o (fallback). Uses native Gemini API (`generateContent`) to avoid OpenAI-compat layer issues.
 - `src/lib/vision-client.ts`: abstraction layer that tries each provider in order and returns the first successful result.
-- `GROQ_API_KEY` and `GEMINI_API_KEY` environment variables.
+- `GEMINI_API_KEY` environment variable.
 
 ### Changed
 - All Spanish code comments translated to English.
 - `README.md` and `CHANGELOG.md` translated to English (international portfolio).
+- System prompt uses concrete JSON examples instead of TypeScript type annotations to prevent model from echoing type syntax literally.
 
 ## [0.4.2] - 2026-04-21
 
