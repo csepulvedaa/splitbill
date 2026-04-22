@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck } from 'lucide-react'
+import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/calculations'
 import type { Bill, PersonSummary } from '@/lib/types'
@@ -38,8 +38,13 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   const [copied, setCopied] = useState(false)
   const [settling, setSettling] = useState(false)
   const [isSettled, setIsSettled] = useState(bill.status === 'liquidada')
+  const [canShare, setCanShare] = useState(false)
   const currency = bill.currency
   const highlightRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setCanShare(typeof navigator !== 'undefined' && !!navigator.share)
+  }, [])
 
   useEffect(() => {
     if (justSaved) toast.success('🎉 ¡Cuenta guardada! Comparte el link.')
@@ -69,6 +74,21 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
     return lines.join('\n')
   }
 
+  function buildPersonLink(name: string) {
+    const base = typeof window !== 'undefined' ? `${window.location.origin}/b/${billId}` : `/b/${billId}`
+    return `${base}?para=${encodeURIComponent(name)}`
+  }
+
+  function buildPersonText(summary: PersonSummary) {
+    const link = buildPersonLink(summary.participant.nombre)
+    const lugar = bill.restaurant ? `en ${bill.restaurant}` : 'de la cuenta'
+    return { text: `Hola ${summary.participant.nombre} 👋\nTu total ${lugar} es ${formatCurrency(summary.total, currency)}.\nVe el detalle aquí: ${link}`, link }
+  }
+
+  function openWhatsApp(text: string) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+  }
+
   async function handleCopyText() {
     try {
       await navigator.clipboard.writeText(buildShareText())
@@ -79,32 +99,26 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   }
 
   async function handleShare() {
-    if (navigator.share) {
+    if (canShare) {
       try { await navigator.share({ title: 'SplitBill', text: buildShareText(), url: window.location.href }) }
       catch { /* cancelled */ }
-    } else { handleCopyText() }
-  }
-
-  function buildPersonLink(name: string) {
-    const base = typeof window !== 'undefined' ? `${window.location.origin}/b/${billId}` : `/b/${billId}`
-    return `${base}?para=${encodeURIComponent(name)}`
+    } else {
+      openWhatsApp(buildShareText())
+    }
   }
 
   async function handleSharePerson(summary: PersonSummary) {
-    const link = buildPersonLink(summary.participant.nombre)
-    const text = `Hola ${summary.participant.nombre} 👋\nTe debo ${formatCurrency(summary.total, currency)} de la cuenta en ${bill.restaurant ?? 'el restaurant'}.\nVe el detalle aquí: ${link}`
-    if (navigator.share) {
+    const { text, link } = buildPersonText(summary)
+    if (canShare) {
       try { await navigator.share({ title: 'SplitBill', text, url: link }); return }
-      catch { /* cancelled — fall through to clipboard */ }
+      catch { /* cancelled — fall through */ }
+    } else {
+      openWhatsApp(text)
     }
-    try {
-      await navigator.clipboard.writeText(link)
-      toast.success(`Link de ${summary.participant.nombre} copiado`)
-    } catch { toast.error('No se pudo copiar') }
   }
 
   async function handleCopyMyAmount(summary: PersonSummary) {
-    const text = `${summary.participant.nombre}: ${formatCurrency(summary.total, currency)} — SplitBill\n${buildPersonLink(summary.participant.nombre)}`
+    const { text } = buildPersonText(summary)
     try {
       await navigator.clipboard.writeText(text)
       toast.success('Monto copiado')
@@ -240,7 +254,10 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
         <button onClick={handleShare}
           className="w-full h-14 rounded-2xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
           style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}>
-          <Share2 className="w-5 h-5" /> Compartir
+          {canShare
+            ? <><Share2 className="w-5 h-5" /> Compartir</>
+            : <><MessageCircle className="w-5 h-5" /> Enviar por WhatsApp</>
+          }
         </button>
 
         <div className="flex gap-2">
