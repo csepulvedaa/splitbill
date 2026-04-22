@@ -99,7 +99,7 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
     <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
       <header className="safe-top px-5 pt-5 pb-5" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+          <Link href="/" className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
               <Image src="/favicon-96x96.png" alt="SplitBill" width={28} height={28} />
             </div>
@@ -116,7 +116,7 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
                 {bill.restaurant ?? 'División de cuenta'} · {new Date(bill.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
               </p>
             </div>
-          </div>
+          </Link>
           <div className="text-right shrink-0">
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>Total</p>
             <p className="font-black text-xl text-white">{formatCurrency(grandTotal, currency)}</p>
