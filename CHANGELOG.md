@@ -7,6 +7,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-04-22
+
+### Added
+- **Web Share API**: "Compartir" button triggers the native OS share sheet on supported devices (iOS Safari, Chrome Android).
+- **WhatsApp fallback**: on desktop or unsupported browsers the button label changes to "Enviar por WhatsApp" and opens `wa.me/?text=...` directly.
+- Same fallback applied to per-person share icons: on desktop, tapping the icon opens WhatsApp with the personal message pre-filled instead of just copying to clipboard.
+
 ## [0.6.0] - 2026-04-22
 
 ### Added
