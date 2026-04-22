@@ -5,8 +5,9 @@ import type { Item, Participant, Assignment } from '@/lib/types'
 type RouteContext = { params: Promise<{ id: string }> }
 
 // PATCH /api/bills/[id]
-// body: { action: 'settle' }  →  marks bill as settled
-// body: { bill, items, participants, assignments }  →  full replacement
+// body: { action: 'settle' }                           →  marks bill as settled
+// body: { action: 'toggle_paid', participant_id, paid } →  toggles paid status on a participant
+// body: { bill, items, participants, assignments }      →  full replacement
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const { id } = await params
   let body: Record<string, unknown>
@@ -14,6 +15,21 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Request inválido.' }, { status: 400 })
+  }
+
+  // ── Toggle participant paid ─────────────────────────────────────────────────
+  if (body.action === 'toggle_paid') {
+    const { participant_id, paid } = body as { participant_id: string; paid: boolean }
+    const { error } = await supabaseAdmin
+      .from('participants')
+      .update({ paid })
+      .eq('id', participant_id)
+      .eq('bill_id', id)
+    if (error) {
+      console.error('Error updating participant paid status:', error)
+      return NextResponse.json({ error: 'Error al actualizar el estado de pago.' }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true })
   }
 
   // ── Settle bill ────────────────────────────────────────────────────────────
