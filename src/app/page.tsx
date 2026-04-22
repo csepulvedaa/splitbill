@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Camera, ChevronRight } from 'lucide-react'
+import { Camera, ChevronRight, Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/calculations'
 import { clearDraft } from '@/lib/store'
@@ -88,7 +88,7 @@ export default function HomePage() {
                     <p className="font-medium text-slate-900">
                       {bill.restaurant ?? 'Sin nombre'}
                     </p>
-                    <p className="text-sm text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-400 mt-0.5" suppressHydrationWarning>
                       {new Date(bill.created_at).toLocaleDateString('es-CL', {
                         day: 'numeric',
                         month: 'long',
