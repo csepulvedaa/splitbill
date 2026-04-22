@@ -7,6 +7,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-21
+
+### Added
+- **Favicon completo**: icono SVG, PNG 96×96, ICO, apple-touch-icon, y manifests para PWA (192×192 y 512×512) generados con RealFaviconGenerator.
+
 ## [0.4.0] - 2026-04-21
 
 ### Added
