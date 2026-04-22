@@ -1,1 +1,194 @@
 @AGENTS.md
+
+# SplitBill — Context for Claude
+
+Mobile-first web app to split restaurant bills. Owner photographs the receipt, AI extracts items, assigns to people, saves to Supabase, shares a link. Live at **splitbill.cl**.
+
+---
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Framework | Next.js 15 App Router |
+| Database | Supabase (PostgreSQL, RLS) |
+| OCR | Gemini Flash → OpenAI GPT-4o cascade |
+| Styles | Tailwind CSS + shadcn/ui |
+| Deploy | Vercel |
+| Domain | splitbill.cl |
+
+---
+
+## App flow (screens in order)
+
+```
+/                        → Home: history of bills + "Nueva cuenta" button
+/new                     → Photo capture (camera or gallery), compress + send to OCR
+/receipt/review          → Edit extracted items (name, qty, unit price)
+/receipt/participants    → Add/remove participants
+/receipt/assign          → Assign each item to people (individual or shared)
+/receipt/summary         → Per-person breakdown, 10% tip toggle, save → /b/[id]
+/b/[id]                  → Public read-only view (shared via WhatsApp link)
+/b/[id]/edit             → Owner edits a saved bill (loads into the same flow)
+```
+
+State between screens is stored in `sessionStorage` via `src/lib/store.ts` (`BillDraft`).
+
+---
+
+## Key files
+
+```
+src/
+├── app/
+│   ├── page.tsx                       # Home + bill history
+│   ├── new/page.tsx                   # Photo capture + OCR trigger
+│   ├── receipt/
+│   │   ├── review/page.tsx            # Edit OCR items; restaurant name input
+│   │   ├── participants/page.tsx      # Manage participants
+│   │   ├── assign/page.tsx            # Assign items to people
+│   │   └── summary/page.tsx          # Final summary, tip toggle, save to DB
+│   ├── b/[id]/
+│   │   ├── page.tsx                   # Public bill view (SSR)
+│   │   ├── PublicView.tsx             # Client component for public view
+│   │   └── edit/
+│   │       ├── page.tsx               # Edit entry point
+│   │       └── EditLoader.tsx         # Loads bill from DB → populates BillDraft
+│   └── api/
+│       ├── analyze-receipt/route.ts   # OCR endpoint (rate limiting + cascade)
+│       └── bills/
+│           ├── route.ts               # GET history, POST new bill
+│           └── [id]/route.ts          # PATCH: settle or full edit
+├── lib/
+│   ├── vision-client.ts               # OCR cascade: Gemini → OpenAI
+│   ├── calculations.ts                # calculateSummary(), buildAssignments(), formatCurrency()
+│   ├── store.ts                       # BillDraft sessionStorage state
+│   ├── types.ts                       # All TypeScript types
+│   ├── identity.ts                    # getDeviceId() — anonymous UUID in localStorage
+│   ├── compress.ts                    # Canvas-based image compression
+│   └── supabase.ts                    # supabaseAdmin (service role) + anon client
+```
+
+> ⚠️ There are stale duplicate files with " 2" suffix (`route 2.ts`, `EditLoader 2.tsx`, `page 2.tsx`, `identity 2.ts`). These are artifacts from copy operations and should be deleted — they are not imported anywhere.
+
+---
+
+## Database schema (Supabase)
+
+```sql
+bills         id, created_at, restaurant, currency, subtotal_declared,
+              tip_included, tip_included_amount, total_declared,
+              tip_manual_enabled, ocr_confidence, ocr_notes,
+              status ('draft'|'liquidada'), device_id
+
+items         id, bill_id, nombre, cantidad, precio_unitario,
+              precio_total, confianza_item, nota_item
+
+participants  id, bill_id, nombre
+
+assignments   id, item_id, participant_id, fraccion, monto_asignado
+```
+
+RLS: public SELECT on all tables. INSERT/UPDATE/DELETE require service role key (server only).
+
+Migration pending in production: `supabase/migrations/20260421_add_device_id.sql`
+(adds `device_id TEXT` + index on `bills`).
+
+---
+
+## OCR cascade (`src/lib/vision-client.ts`)
+
+1. **Gemini** — native `generateContent` API (`X-goog-api-key` via query param), model `gemini-flash-latest`.
+2. **OpenAI** — `gpt-4o` via OpenAI SDK, fallback only.
+
+Uses concrete JSON examples in system prompt (not TypeScript type annotations — models echo those literally). `maxOutputTokens: 8192` to avoid truncation.
+
+Env vars: `GEMINI_API_KEY`, `OPENAI_API_KEY`. Both set in Vercel production and `.env.local`.
+
+---
+
+## Device identity
+
+`src/lib/identity.ts` — `getDeviceId()` creates/reads a UUID from `localStorage` (`splitbill_device_id`).
+- Bills are saved with `device_id` from `X-Device-Id` header.
+- Home feed (`GET /api/bills`) filters by `device_id` so each device sees only its own bills.
+- Future-proof: can link `device_id` to a real user account later.
+
+---
+
+## Assignment logic (`src/lib/calculations.ts`)
+
+- **Equal split**: `fraccion = 1/n`, remainder cent goes to first participant.
+- **Proportional split** (items with `cantidad > 1`): uses `AssignmentDraft.quantities` (per-person unit counts). `EditLoader` always reconstructs `quantities` for multi-unit items so +/− counters load correctly on edit.
+- `totalDeclared` is stored in `BillDraft` to survive the edit flow (since `ocrResult` is null when editing a saved bill).
+
+---
+
+## Favicon / PWA
+
+- Custom favicon set generated with RealFaviconGenerator.
+- **Critical**: `src/app/favicon.ico` takes precedence over `public/favicon.ico` in App Router. Always update both.
+- `metadataBase: new URL('https://splitbill.cl')` in `src/app/layout.tsx`.
+- `public/site.webmanifest` — name: "SplitBill", theme_color: "#f43f5e", background_color: "#FFF7F7".
+
+---
+
+## Implemented features (as of v0.5.0)
+
+- [x] Photo capture + Canvas compression
+- [x] OCR with Gemini → OpenAI cascade
+- [x] Editable item review (name, qty, price)
+- [x] Manual item add/delete
+- [x] Restaurant name input
+- [x] Participant management
+- [x] Item assignment: individual and shared (equal or proportional by units)
+- [x] 10% tip toggle (per-person, based on individual subtotal)
+- [x] Tip auto-detected from OCR (toggle pre-set accordingly)
+- [x] ÷N display shows item total: "÷3 de $9.000"
+- [x] Per-person summary with full breakdown
+- [x] Save to Supabase + shareable `/b/[id]` link
+- [x] Public read-only view
+- [x] Copy summary as plain text (for WhatsApp)
+- [x] Bill history on home (last 20, filtered by device)
+- [x] Mark bill as settled (status: 'liquidada')
+- [x] Full bill editing (edit → re-enters flow → saves back)
+- [x] Anonymous device identity (bills private per device)
+- [x] PWA manifest + full favicon set + apple-touch-icon
+- [x] Rate limiting: 10 req / 5 min per IP
+- [x] Image size validation: 5MB max on server
+
+---
+
+## Pending / next features (from docs/Contexto.md)
+
+**P1 — High value, next phase:**
+- [ ] **F24** `?para=Nombre` — public view highlights the specific person's amount
+- [ ] **F25** Web Share API — native share sheet instead of copy/paste; WhatsApp link fallback
+- [ ] **F26** Mark individual transfers as received — owner marks each person as "paid"
+- [ ] **F27** Split item into N individual units — "3 cervezas" → 3 line items
+- [ ] **F28** Configurable link expiration — 24h / 7d / 30d / permanent
+- [ ] **F29** Multi-currency support with local formatting — CLP, USD, EUR, MXN
+
+**P2 — Nice to have:**
+- [ ] **F30** Dark mode
+- [ ] **F31** Login for public users (magic link or Google) — Clerk or NextAuth
+- [ ] **F32** Cost model for public users — freemium / subscription
+- [ ] **F33** Multiple payers
+- [ ] **F34** Export to image/PDF
+- [ ] **F35** Payment link integration (Mercado Pago, etc.)
+
+**Technical debt:**
+- [ ] Delete duplicate files: `src/app/api/bills/[id]/route 2.ts`, `src/app/b/[id]/edit/EditLoader 2.tsx`, `src/app/b/[id]/edit/page 2.tsx`, `src/lib/identity 2.ts`
+- [ ] Run Supabase migration `20260421_add_device_id.sql` in production
+- [ ] Rate limiting with Upstash Redis (current in-memory impl resets on cold start)
+- [ ] Manual item entry fallback when OCR fails completely (currently only error message shown)
+
+---
+
+## Conventions
+
+- All code comments in English.
+- PR must include a `CHANGELOG.md` entry (enforced by GitHub Actions).
+- `supabaseAdmin` (service role) for all writes — never expose to client.
+- `crypto.randomUUID()` to remap OCR item IDs (which are "1", "2", ...) to valid UUIDs before DB insert.
+- `suppressHydrationWarning` on date elements (locale-dependent `toLocaleDateString`).

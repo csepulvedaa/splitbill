@@ -7,6 +7,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-22
+
+### Added
+- **Per-person share links** (`?para=Nombre`): each person card in the public view now has a share icon that copies/opens the bill URL with their name as a query param.
+- **Highlighted personal view**: opening `/b/[id]?para=Juan` highlights Juan's card with the rose gradient header, auto-scrolls to it, and shows a "Copiar mi monto" button.
+- **"Copiar mi monto"**: copies `"Juan: $X,XXX — SplitBill\n<link>"` to clipboard, ready to paste in a chat.
+
+### Removed
+- Stale duplicate source files (`route 2.ts`, `EditLoader 2.tsx`, `page 2.tsx`, `identity 2.ts`) that were never tracked by git.
+
 ## [0.5.0] - 2026-04-21
 
 ### Added

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2 } from 'lucide-react'
+import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/calculations'
 import type { Bill, PersonSummary } from '@/lib/types'
@@ -39,11 +39,19 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   const [settling, setSettling] = useState(false)
   const [isSettled, setIsSettled] = useState(bill.status === 'liquidada')
   const currency = bill.currency
+  const highlightRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (justSaved) toast.success('🎉 ¡Cuenta guardada! Comparte el link.')
     if (justEdited) toast.success('✅ Cuenta actualizada correctamente.')
   }, [justSaved, justEdited])
+
+  // Scroll to highlighted person on load
+  useEffect(() => {
+    if (highlightName && highlightRef.current) {
+      setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+    }
+  }, [highlightName])
 
   function buildShareText(): string {
     const lines = ['🧾 SplitBill\n']
@@ -73,8 +81,34 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   async function handleShare() {
     if (navigator.share) {
       try { await navigator.share({ title: 'SplitBill', text: buildShareText(), url: window.location.href }) }
-      catch { /* cancelado */ }
+      catch { /* cancelled */ }
     } else { handleCopyText() }
+  }
+
+  function buildPersonLink(name: string) {
+    const base = typeof window !== 'undefined' ? `${window.location.origin}/b/${billId}` : `/b/${billId}`
+    return `${base}?para=${encodeURIComponent(name)}`
+  }
+
+  async function handleSharePerson(summary: PersonSummary) {
+    const link = buildPersonLink(summary.participant.nombre)
+    const text = `Hola ${summary.participant.nombre} 👋\nTe debo ${formatCurrency(summary.total, currency)} de la cuenta en ${bill.restaurant ?? 'el restaurant'}.\nVe el detalle aquí: ${link}`
+    if (navigator.share) {
+      try { await navigator.share({ title: 'SplitBill', text, url: link }); return }
+      catch { /* cancelled — fall through to clipboard */ }
+    }
+    try {
+      await navigator.clipboard.writeText(link)
+      toast.success(`Link de ${summary.participant.nombre} copiado`)
+    } catch { toast.error('No se pudo copiar') }
+  }
+
+  async function handleCopyMyAmount(summary: PersonSummary) {
+    const text = `${summary.participant.nombre}: ${formatCurrency(summary.total, currency)} — SplitBill\n${buildPersonLink(summary.participant.nombre)}`
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Monto copiado')
+    } catch { toast.error('No se pudo copiar') }
   }
 
   async function handleSettle() {
@@ -127,10 +161,13 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
       <div className="flex-1 px-4 py-4 space-y-3 pb-56">
         {summaries.map((s, idx) => {
           const color = avatarColor(idx)
-          const isHighlighted = highlightName && s.participant.nombre.toLowerCase() === highlightName.toLowerCase()
+          const isHighlighted = highlightName
+            ? s.participant.nombre.toLowerCase() === highlightName.toLowerCase()
+            : false
 
           return (
-            <div key={s.participant.id} className="bg-white rounded-3xl overflow-hidden"
+            <div key={s.participant.id} ref={isHighlighted ? highlightRef : null}
+              className="bg-white rounded-3xl overflow-hidden"
               style={{
                 boxShadow: isHighlighted ? '0 4px 20px rgba(244,63,94,0.18)' : '0 2px 12px rgba(0,0,0,0.07)',
                 border: isHighlighted ? '2px solid #f43f5e' : '1px solid #F1F5F9',
@@ -148,9 +185,20 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
                   <p className="font-bold text-base" style={{ color: isHighlighted ? '#fff' : '#0F172A' }}>{s.participant.nombre}</p>
                   {isHighlighted && <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>💸 Debes transferir</p>}
                 </div>
-                <p className="text-xl font-black shrink-0" style={{ color: isHighlighted ? '#fff' : '#f43f5e' }}>
-                  {formatCurrency(s.total, currency)}
-                </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <p className="text-xl font-black" style={{ color: isHighlighted ? '#fff' : '#f43f5e' }}>
+                    {formatCurrency(s.total, currency)}
+                  </p>
+                  {/* Per-person share button — only shown when no one is highlighted */}
+                  {!highlightName && (
+                    <button onClick={() => handleSharePerson(s)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
+                      style={{ background: 'rgba(244,63,94,0.08)', color: '#f43f5e' }}
+                      title={`Compartir link de ${s.participant.nombre}`}>
+                      <Share2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="px-4 py-3.5 space-y-2.5">
@@ -174,6 +222,14 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
                   <span className="text-sm font-semibold text-slate-600">Total</span>
                   <span className="text-xl font-black" style={{ color: '#f43f5e' }}>{formatCurrency(s.total, currency)}</span>
                 </div>
+                {/* "Copy my amount" — only shown to the highlighted person */}
+                {isHighlighted && (
+                  <button onClick={() => handleCopyMyAmount(s)}
+                    className="w-full h-10 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-1"
+                    style={{ background: '#FFF1F2', color: '#f43f5e', border: '1px solid #FECDD3' }}>
+                    <UserCheck className="w-4 h-4" /> Copiar mi monto
+                  </button>
+                )}
               </div>
             </div>
           )
