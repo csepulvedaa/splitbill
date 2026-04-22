@@ -1,7 +1,7 @@
 import type { Item, Participant, Assignment, PersonSummary } from './types'
 
 /**
- * Calcula el resumen por persona dado el estado actual de la cuenta.
+ * Calculates the per-person summary given the current bill state.
  */
 export function calculateSummary(
   items: Item[],
@@ -17,7 +17,7 @@ export function calculateSummary(
         (a) => a.item_id === item.id && a.participant_id === participant.id,
       )
       if (itemAssignments.length === 0) continue
-      // Solo debe haber una asignación por (item, participant)
+      // There should only be one assignment per (item, participant)
       const a = itemAssignments[0]
       personItems.push({
         item,
@@ -35,9 +35,9 @@ export function calculateSummary(
 }
 
 /**
- * Genera assignments a partir de los drafts del cliente.
- * - Si el draft tiene `quantities`: reparto proporcional por unidades (ítems con cantidad > 1)
- * - Si no: reparto equitativo entre participant_ids
+ * Builds assignments from client-side drafts.
+ * - If the draft has `quantities`: proportional split by units (items with cantidad > 1)
+ * - Otherwise: equal split among participant_ids
  */
 export function buildAssignments(
   items: Item[],
@@ -50,7 +50,7 @@ export function buildAssignments(
     if (!item || !item.precio_total) continue
 
     if (draft.quantities) {
-      // Reparto proporcional por unidades
+      // Proportional split by units
       const entries = Object.entries(draft.quantities).filter(([, q]) => q > 0)
       if (entries.length === 0) continue
 
@@ -74,7 +74,7 @@ export function buildAssignments(
         })
       })
     } else {
-      // Reparto equitativo entre los participantes seleccionados
+      // Equal split among selected participants
       if (draft.participant_ids.length === 0) continue
 
       const n = draft.participant_ids.length

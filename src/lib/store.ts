@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Estado global del flujo de creación de una cuenta.
- * Vive en sessionStorage para sobrevivir recargas dentro de la misma sesión.
+ * Global state for the bill creation flow.
+ * Lives in sessionStorage so it survives page reloads within the same session.
  */
 
 import type { EditableItem, ParticipantDraft, AssignmentDraft, OcrResult } from './types'
@@ -13,9 +13,9 @@ export interface BillDraft {
   participants: ParticipantDraft[]
   assignments: AssignmentDraft[]   // { item_id, participant_ids[] }
   tipManualEnabled: boolean
-  restaurantName?: string          // Nombre del restaurante (editable por el usuario)
-  totalDeclared?: number | null    // Total declarado (preservado al editar)
-  editingBillId?: string           // Presente cuando se edita una cuenta existente
+  restaurantName?: string          // Restaurant name (user-editable)
+  totalDeclared?: number | null    // Declared total (preserved during editing)
+  editingBillId?: string           // Present when editing an existing bill
 }
 
 const KEY = 'splitbill_draft'

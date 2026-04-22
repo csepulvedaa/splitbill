@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   const { bill, items, participants, assignments } = body
   const deviceId = request.headers.get('X-Device-Id') ?? null
 
-  // Insertar bill
+  // Insert bill
   const { data: billData, error: billError } = await supabaseAdmin
     .from('bills')
     .insert({ ...bill, device_id: deviceId })
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
   const billId = billData.id
 
-  // Reasignar IDs de ítems a UUIDs válidos (el OCR devuelve "1", "2", etc.)
+  // Remap item IDs to valid UUIDs (OCR returns "1", "2", etc.)
   const itemIdMap = new Map<string, string>()
   const itemsWithBillId = items.map((item) => {
     const newId = crypto.randomUUID()
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Error al guardar los ítems.' }, { status: 500 })
   }
 
-  // Insertar participantes
+  // Insert participants
   const participantsWithBillId = participants.map((p) => ({ ...p, bill_id: billId }))
   const { error: partsError } = await supabaseAdmin
     .from('participants')
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Error al guardar los participantes.' }, { status: 500 })
   }
 
-  // Actualizar item_id en asignaciones con los nuevos UUIDs
+  // Remap item_id in assignments to the new UUIDs
   const assignmentsRemapped = assignments.map((a) => ({
     ...a,
     item_id: itemIdMap.get(a.item_id) ?? a.item_id,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ id: billId })
 }
 
-// Historial: últimas 20 cuentas
+// History: last 20 bills
 export async function GET(request: NextRequest) {
   const deviceId = request.headers.get('X-Device-Id')
 
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Error al obtener el historial.' }, { status: 500 })
   }
 
-  // Para cuentas sin total_declared, calcular la suma de ítems
+  // For bills without total_declared, compute the sum from items
   const nullIds = (bills ?? []).filter((b) => b.total_declared == null).map((b) => b.id)
   if (nullIds.length > 0) {
     const { data: items } = await supabaseAdmin
