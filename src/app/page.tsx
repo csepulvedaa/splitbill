@@ -35,14 +35,15 @@ export default function HomePage() {
     <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
       {/* Header */}
       <header className="safe-top text-white px-4 pt-4 pb-5" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+            <Image src="/favicon-96x96.png" alt="SplitBill" width={28} height={28} className="sm:w-8 sm:h-8" />
+          </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">SplitBill</h1>
             <p className="text-white/70 text-sm mt-0.5">Divide la cuenta sin dramas</p>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-            <Image src="/favicon-96x96.png" alt="SplitBill" width={28} height={28} className="sm:w-8 sm:h-8" />
-          </div>
+        </div>
         </div>
       </header>
 
