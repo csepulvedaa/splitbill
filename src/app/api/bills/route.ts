@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { cookies } from 'next/headers'
+import { supabaseAdmin, createSupabaseServerClient } from '@/lib/supabase'
 import type { Item, Participant, Assignment } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
@@ -29,10 +30,16 @@ export async function POST(request: NextRequest) {
   const { bill, items, participants, assignments } = body
   const deviceId = request.headers.get('X-Device-Id') ?? null
 
+  // Get authenticated user (if any)
+  const cookieStore = await cookies()
+  const supabaseServer = createSupabaseServerClient(cookieStore)
+  const { data: { user } } = await supabaseServer.auth.getUser()
+  const userId = user?.id ?? null
+
   // Insert bill
   const { data: billData, error: billError } = await supabaseAdmin
     .from('bills')
-    .insert({ ...bill, device_id: deviceId })
+    .insert({ ...bill, device_id: deviceId, user_id: userId })
     .select()
     .single()
 
@@ -84,13 +91,22 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const deviceId = request.headers.get('X-Device-Id')
 
+  // Get authenticated user (if any)
+  const cookieStore = await cookies()
+  const supabaseServer = createSupabaseServerClient(cookieStore)
+  const { data: { user } } = await supabaseServer.auth.getUser()
+
   let query = supabaseAdmin
     .from('bills')
     .select('id, created_at, restaurant, currency, total_declared, status')
     .order('created_at', { ascending: false })
     .limit(20)
 
-  if (deviceId) {
+  if (user) {
+    // Authenticated: show bills owned by this user account
+    query = query.eq('user_id', user.id)
+  } else if (deviceId) {
+    // Anonymous: show bills from this device
     query = query.eq('device_id', deviceId)
   }
 
