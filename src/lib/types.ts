@@ -69,6 +69,7 @@ export interface Participant {
   bill_id: string
   nombre: string
   orden: number
+  paid: boolean
 }
 
 export interface Assignment {

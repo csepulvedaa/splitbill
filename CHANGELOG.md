@@ -7,6 +7,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-04-22
+
+### Added
+- **Mark transfer as received** (F26): each person card in the public view has a "Marcar como recibido" toggle button. When marked, the card turns green with a "Pagó ✓" badge and the avatar shows a checkmark.
+- When all participants are marked as paid, the "Marcar como liquidada" button turns green and its label changes to "¡Todos pagaron! Liquidar cuenta".
+- Paid state persists in the database (`participants.paid` column).
+- Toggle is reversible — tapping again unmarks as paid.
+
+### Migration
+- Run `supabase/migrations/20260422_add_participant_paid.sql`: adds `paid boolean DEFAULT false` to `participants`.
+
 ## [0.7.0] - 2026-04-22
 
 ### Added

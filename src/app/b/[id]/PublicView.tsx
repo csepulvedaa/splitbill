@@ -39,8 +39,14 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   const [settling, setSettling] = useState(false)
   const [isSettled, setIsSettled] = useState(bill.status === 'liquidada')
   const [canShare, setCanShare] = useState(false)
+  const [paidMap, setPaidMap] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(summaries.map((s) => [s.participant.id, s.participant.paid ?? false]))
+  )
+  const [togglingId, setTogglingId] = useState<string | null>(null)
   const currency = bill.currency
   const highlightRef = useRef<HTMLDivElement>(null)
+
+  const allPaid = summaries.length > 0 && summaries.every((s) => paidMap[s.participant.id])
 
   useEffect(() => {
     setCanShare(typeof navigator !== 'undefined' && !!navigator.share)
@@ -125,6 +131,21 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
     } catch { toast.error('No se pudo copiar') }
   }
 
+  async function handleTogglePaid(participantId: string) {
+    const newVal = !paidMap[participantId]
+    setTogglingId(participantId)
+    try {
+      const res = await fetch(`/api/bills/${billId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_paid', participant_id: participantId, paid: newVal }),
+      })
+      if (!res.ok) throw new Error()
+      setPaidMap((prev) => ({ ...prev, [participantId]: newVal }))
+    } catch { toast.error('Error al actualizar el estado de pago.') }
+    finally { setTogglingId(null) }
+  }
+
   async function handleSettle() {
     setSettling(true)
     try {
@@ -178,32 +199,43 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
           const isHighlighted = highlightName
             ? s.participant.nombre.toLowerCase() === highlightName.toLowerCase()
             : false
+          const isPaid = paidMap[s.participant.id] ?? false
+          const isToggling = togglingId === s.participant.id
 
           return (
             <div key={s.participant.id} ref={isHighlighted ? highlightRef : null}
               className="bg-white rounded-3xl overflow-hidden"
               style={{
                 boxShadow: isHighlighted ? '0 4px 20px rgba(244,63,94,0.18)' : '0 2px 12px rgba(0,0,0,0.07)',
-                border: isHighlighted ? '2px solid #f43f5e' : '1px solid #F1F5F9',
+                border: isPaid ? '1.5px solid #86efac' : isHighlighted ? '2px solid #f43f5e' : '1px solid #F1F5F9',
+                opacity: isPaid ? 0.75 : 1,
               }}>
               <div className="flex items-center gap-3 px-4 py-3.5"
                 style={{
-                  background: isHighlighted ? 'linear-gradient(135deg, #f43f5e, #fb923c)' : '#FAFAFA',
+                  background: isPaid ? '#F0FDF4' : isHighlighted ? 'linear-gradient(135deg, #f43f5e, #fb923c)' : '#FAFAFA',
                   borderBottom: '1px solid #F1F5F9',
                 }}>
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-black shrink-0"
-                  style={isHighlighted ? { background: 'rgba(255,255,255,0.25)', color: '#fff' } : { background: color.bg, color: color.text }}>
-                  {s.participant.nombre.charAt(0).toUpperCase()}
+                  style={isPaid ? { background: '#DCFCE7', color: '#16a34a' } : isHighlighted ? { background: 'rgba(255,255,255,0.25)', color: '#fff' } : { background: color.bg, color: color.text }}>
+                  {isPaid ? '✓' : s.participant.nombre.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-base" style={{ color: isHighlighted ? '#fff' : '#0F172A' }}>{s.participant.nombre}</p>
-                  {isHighlighted && <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>💸 Debes transferir</p>}
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-base" style={{ color: isPaid ? '#16a34a' : isHighlighted ? '#fff' : '#0F172A' }}>
+                      {s.participant.nombre}
+                    </p>
+                    {isPaid && (
+                      <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#DCFCE7', color: '#16a34a' }}>
+                        Pagó ✓
+                      </span>
+                    )}
+                  </div>
+                  {isHighlighted && !isPaid && <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>💸 Debes transferir</p>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <p className="text-xl font-black" style={{ color: isHighlighted ? '#fff' : '#f43f5e' }}>
+                  <p className="text-xl font-black" style={{ color: isPaid ? '#16a34a' : isHighlighted ? '#fff' : '#f43f5e' }}>
                     {formatCurrency(s.total, currency)}
                   </p>
-                  {/* Per-person share button — only shown when no one is highlighted */}
                   {!highlightName && (
                     <button onClick={() => handleSharePerson(s)}
                       className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
@@ -234,8 +266,22 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
                 <div className="h-px" style={{ background: '#F1F5F9' }} />
                 <div className="flex justify-between items-center pt-0.5">
                   <span className="text-sm font-semibold text-slate-600">Total</span>
-                  <span className="text-xl font-black" style={{ color: '#f43f5e' }}>{formatCurrency(s.total, currency)}</span>
+                  <span className="text-xl font-black" style={{ color: isPaid ? '#16a34a' : '#f43f5e' }}>{formatCurrency(s.total, currency)}</span>
                 </div>
+
+                {/* Paid toggle — not shown when viewing a personal link */}
+                {!highlightName && !isSettled && (
+                  <button onClick={() => handleTogglePaid(s.participant.id)} disabled={isToggling}
+                    className="w-full h-10 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-1 disabled:opacity-60"
+                    style={isPaid
+                      ? { background: '#F0FDF4', color: '#16a34a', border: '1px solid #BBF7D0' }
+                      : { background: '#F8FAFC', color: '#64748B', border: '1px solid #E2E8F0' }
+                    }>
+                    <CheckCircle2 className="w-4 h-4" />
+                    {isToggling ? 'Guardando...' : isPaid ? 'Recibido ✓ — desmarcar' : 'Marcar como recibido'}
+                  </button>
+                )}
+
                 {/* "Copy my amount" — only shown to the highlighted person */}
                 {isHighlighted && (
                   <button onClick={() => handleCopyMyAmount(s)}
@@ -289,9 +335,12 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
         {!isSettled ? (
           <button onClick={handleSettle} disabled={settling}
             className="w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
-            style={{ color: '#16a34a', border: '1px solid #BBF7D0', background: '#F0FDF4' }}>
+            style={allPaid
+              ? { color: '#fff', background: 'linear-gradient(135deg, #22c55e, #16a34a)', boxShadow: '0 4px 16px rgba(34,197,94,0.30)' }
+              : { color: '#16a34a', border: '1px solid #BBF7D0', background: '#F0FDF4' }
+            }>
             <CheckCircle2 className="w-4 h-4" />
-            {settling ? 'Guardando...' : '¡Ya pagamos todos! Marcar como liquidada'}
+            {settling ? 'Guardando...' : allPaid ? '¡Todos pagaron! Liquidar cuenta' : 'Marcar cuenta como liquidada'}
           </button>
         ) : (
           <div className="w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
