@@ -7,6 +7,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-04-23
+
+### Added
+- **Magic link login**: new `/login` page lets users authenticate with their email — no passwords. Supabase sends a one-time link; clicking it exchanges the code for a cookie session via `/auth/callback`.
+- **Auth-aware home page**: header shows the logged-in user's email prefix with a logout button. Anonymous users see an "Entrar" link and a "Entra para sincronizar →" hint in the history section.
+- **Cross-device bill sync**: bills created while logged in are stored with `user_id`. The home feed filters by `user_id` for authenticated users, so the same account sees all its bills from any device.
+- **Session middleware**: refreshes the Supabase JWT on every request to keep sessions alive across page loads.
+- **Anonymous fallback preserved**: unauthenticated users still see their bills by `device_id` as before.
+
+### Migration
+- Run `supabase/migrations/20260423_add_user_id_to_bills.sql`: adds `user_id UUID REFERENCES auth.users(id)` and index to `bills`.
+
+### Supabase dashboard config
+- Authentication → URL Configuration → Redirect URLs: add `https://splitbill.cl/auth/callback`
+- Authentication → Providers → Email: confirm magic links are enabled
+
 ## [0.8.0] - 2026-04-22
 
 ### Added
