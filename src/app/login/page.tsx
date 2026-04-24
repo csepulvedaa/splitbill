@@ -74,7 +74,7 @@ export default function LoginPage() {
 
   async function handleSubmitCode(e: React.FormEvent) {
     e.preventDefault()
-    if (code.trim().length < 6) return
+    if (code.trim().length < 6 || code.trim().length > 8) return
     setLoading(true)
     setError(null)
 
@@ -181,10 +181,10 @@ export default function LoginPage() {
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                maxLength={6}
+                maxLength={8}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="123456"
+                placeholder="12345678"
                 required
                 autoFocus
                 className="w-full h-14 px-4 rounded-2xl text-center font-bold outline-none transition-all"
@@ -197,7 +197,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || code.length < 6}
+                disabled={loading || code.length < 6 || code.length > 8}
                 className="w-full h-14 rounded-2xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
                 style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
               >

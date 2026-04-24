@@ -7,6 +7,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-04-23
+
+### Fixed
+- **OTP code length**: Supabase sends an 8-digit token via `{{ .Token }}` in the Magic Link template. Input now accepts 6–8 digits (was hard-capped at 6).
+
+### Config required
+- Supabase → Authentication → URL Configuration → Redirect URLs: add `https://splitbill.cl/auth/callback`. Without this, Supabase ignores `emailRedirectTo` and redirects to the Site URL, skipping the code exchange and leaving the user logged out.
+
 ## [0.9.2] - 2026-04-23
 
 ### Fixed
