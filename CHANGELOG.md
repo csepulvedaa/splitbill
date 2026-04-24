@@ -7,6 +7,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-04-23
+
+### Fixed
+- **Middleware crash**: skip Supabase session refresh if `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_ANON_KEY` are not set, preventing "URL and Key are required" errors in logs.
+- **OTP login for PWA**: login page now uses a two-step flow (email → 6-digit code via `verifyOtp`) so users inside the installed PWA never get redirected to an external browser to authenticate. Magic link still works on desktop.
+- **Error messages**: show the real Supabase error (e.g. rate limit) instead of a generic string.
+
+### Supabase dashboard config
+- Authentication → Email Templates → Magic Link: add `{{ .Token }}` to the email body so the 6-digit code is included alongside the magic link.
+
 ## [0.9.0] - 2026-04-23
 
 ### Added
