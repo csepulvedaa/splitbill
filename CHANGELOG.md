@@ -7,6 +7,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-04-23
+
+### Fixed
+- **Claim timing**: bills claim now runs before the history fetch, so anonymous bills are linked to the account before the list loads. Previously both ran in parallel and the list returned empty.
+
 ## [0.9.4] - 2026-04-23
 
 ### Fixed
