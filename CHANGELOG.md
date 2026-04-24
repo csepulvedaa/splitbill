@@ -7,6 +7,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-04-23
+
+### Fixed
+- **Claim anonymous bills on login**: when a user logs in for the first time, all bills created anonymously on that device (`device_id`) are now automatically linked to their account (`user_id`). No data loss on first login.
+- **OTP UI text**: removed specific digit count ("6 dígitos") from the login screen — replaced with "código de acceso" to avoid confusion since Supabase sends an 8-digit token.
+
+### Added
+- `POST /api/bills/claim` endpoint: updates bills matching the current `device_id` to the authenticated `user_id` (only bills without an existing `user_id`).
+
 ## [0.9.3] - 2026-04-23
 
 ### Fixed

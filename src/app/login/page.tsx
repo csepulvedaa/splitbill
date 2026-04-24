@@ -122,7 +122,7 @@ export default function LoginPage() {
               </div>
               <h1 className="text-2xl font-black text-slate-900 mb-2">Entra con tu email</h1>
               <p className="text-slate-500 text-sm leading-relaxed">
-                Te mandamos un código de 6 dígitos. Sin contraseña.
+                Te mandamos un código de acceso. Sin contraseña.
               </p>
             </div>
 
@@ -171,7 +171,7 @@ export default function LoginPage() {
               </div>
               <h1 className="text-2xl font-black text-slate-900 mb-2">Ingresa el código</h1>
               <p className="text-slate-500 text-sm leading-relaxed mb-1">
-                Mandamos un código de 6 dígitos a
+                Mandamos un código de acceso a
               </p>
               <p className="font-bold text-slate-800 text-base">{email}</p>
             </div>
