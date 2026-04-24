@@ -49,6 +49,7 @@ export interface Bill {
   ocr_notes: string[]
   status: string
   expires_at: string
+  user_id: string | null
 }
 
 export interface Item {

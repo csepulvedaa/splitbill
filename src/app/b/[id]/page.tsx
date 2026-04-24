@@ -42,6 +42,7 @@ export default async function BillPublicPage({
 
   const { bill, items, participants, assignments } = data
   const summaries = calculateSummary(items, participants, assignments, bill.tip_manual_enabled)
+  const isAnonymous = !bill.user_id
 
   return (
     <PublicView
@@ -51,6 +52,7 @@ export default async function BillPublicPage({
       highlightName={para}
       justSaved={saved === '1'}
       justEdited={edited === '1'}
+      isAnonymous={isAnonymous}
     />
   )
 }

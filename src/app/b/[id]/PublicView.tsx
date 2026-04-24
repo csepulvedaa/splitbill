@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck, MessageCircle } from 'lucide-react'
+import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck, MessageCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/calculations'
 import type { Bill, PersonSummary } from '@/lib/types'
@@ -24,6 +24,14 @@ function avatarColor(idx: number) {
   return AVATAR_PALETTE[idx % AVATAR_PALETTE.length]
 }
 
+const ANON_RETENTION_DAYS = 30
+
+function daysUntilExpiry(createdAt: string): number {
+  const created = new Date(createdAt).getTime()
+  const expiry = created + ANON_RETENTION_DAYS * 24 * 60 * 60 * 1000
+  return Math.max(0, Math.ceil((expiry - Date.now()) / (24 * 60 * 60 * 1000)))
+}
+
 interface Props {
   bill: Bill
   billId: string
@@ -31,9 +39,10 @@ interface Props {
   highlightName?: string
   justSaved?: boolean
   justEdited?: boolean
+  isAnonymous?: boolean
 }
 
-export default function PublicView({ bill, billId, summaries, highlightName, justSaved, justEdited }: Props) {
+export default function PublicView({ bill, billId, summaries, highlightName, justSaved, justEdited, isAnonymous }: Props) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [settling, setSettling] = useState(false)
@@ -192,6 +201,22 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
           </div>
         </div>
       </header>
+
+      {/* Anon retention disclaimer */}
+      {isAnonymous && (() => {
+        const days = daysUntilExpiry(bill.created_at)
+        return (
+          <div className="mx-4 mt-3 flex items-start gap-2.5 rounded-2xl px-4 py-3" style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA' }}>
+            <Clock className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#ea580c' }} />
+            <p className="text-xs leading-relaxed" style={{ color: '#9a3412' }}>
+              {days > 0
+                ? <>Esta cuenta se eliminará en <strong>{days} {days === 1 ? 'día' : 'días'}</strong>. <Link href="/login" className="font-semibold underline">Crea una cuenta</Link> para conservarla.</>
+                : <>Esta cuenta está por vencerse. <Link href="/login" className="font-semibold underline">Crea una cuenta</Link> para conservarla.</>
+              }
+            </p>
+          </div>
+        )
+      })()}
 
       <div className="flex-1 px-4 py-4 space-y-3 pb-56">
         {summaries.map((s, idx) => {
