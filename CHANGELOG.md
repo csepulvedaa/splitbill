@@ -7,6 +7,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-04-24
+
+### Added
+- **Anonymous bill retention**: bills without a user account are automatically deleted after 30 days via a daily Vercel Cron job (`GET /api/cron/cleanup`, protected by `CRON_SECRET`).
+- **Expiry disclaimer**: anonymous bill views show an orange banner with the exact days remaining and a link to create an account.
+- **CASCADE deletes**: foreign keys on `items`, `participants`, and `assignments` now use `ON DELETE CASCADE`, so deleting a bill cleans up all related rows automatically.
+
+### Migration
+- Run `supabase/migrations/20260424_cascade_deletes_and_cleanup.sql`: adds CASCADE constraints and removes any existing orphaned rows.
+
+### Config required
+- Add `CRON_SECRET` env var in Vercel (any random string). Vercel Cron passes it as `Authorization: Bearer <secret>`.
+
 ## [0.9.5] - 2026-04-23
 
 ### Fixed
