@@ -34,26 +34,33 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null))
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      // On first login, claim any anonymous bills created on this device
-      if (event === 'SIGNED_IN') {
-        fetch('/api/bills/claim', {
-          method: 'POST',
-          headers: { 'X-Device-Id': getDeviceId() },
-        }).catch(() => {})
-      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
-    fetch('/api/bills', { headers: { 'X-Device-Id': getDeviceId() } })
-      .then((r) => r.json())
-      .then(setHistory)
-      .catch(() => setHistory([]))
-      .finally(() => setLoading(false))
+    const deviceId = getDeviceId()
+
+    async function loadHistory() {
+      // If logged in, claim anonymous bills first, then fetch
+      if (user) {
+        await fetch('/api/bills/claim', {
+          method: 'POST',
+          headers: { 'X-Device-Id': deviceId },
+        }).catch(() => {})
+      }
+
+      fetch('/api/bills', { headers: { 'X-Device-Id': deviceId } })
+        .then((r) => r.json())
+        .then(setHistory)
+        .catch(() => setHistory([]))
+        .finally(() => setLoading(false))
+    }
+
+    loadHistory()
   }, [user]) // Refetch when auth state changes
 
   async function handleSignOut() {
