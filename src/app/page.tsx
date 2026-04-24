@@ -34,8 +34,15 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null))
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      // On first login, claim any anonymous bills created on this device
+      if (event === 'SIGNED_IN') {
+        fetch('/api/bills/claim', {
+          method: 'POST',
+          headers: { 'X-Device-Id': getDeviceId() },
+        }).catch(() => {})
+      }
     })
 
     return () => subscription.unsubscribe()
