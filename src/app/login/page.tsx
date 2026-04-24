@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Mail, CheckCircle2, Loader2, KeyRound } from 'lucide-react'
 import { getSupabaseBrowser } from '@/lib/supabase'
+
+const COOLDOWN_SECONDS = 60
 
 type Step = 'email' | 'code'
 
@@ -16,27 +18,50 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<Step>('email')
   const [error, setError] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [])
+
+  function startCooldown() {
+    setCooldown(COOLDOWN_SECONDS)
+    timerRef.current = setInterval(() => {
+      setCooldown((s) => {
+        if (s <= 1) { clearInterval(timerRef.current!); return 0 }
+        return s - 1
+      })
+    }, 1000)
+  }
+
+  function isRateLimit(err: { message: string; status?: number }) {
+    return err.status === 429 ||
+      err.message.toLowerCase().includes('rate') ||
+      err.message.toLowerCase().includes('limit') ||
+      err.message.toLowerCase().includes('429')
+  }
 
   async function sendOtp() {
+    if (cooldown > 0) return
     setLoading(true)
     setError(null)
 
     const supabase = getSupabaseBrowser()
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     })
 
     if (error) {
-      setError(error.message.includes('rate') || error.message.includes('limit')
-        ? 'Espera un minuto antes de pedir otro código.'
+      setError(isRateLimit(error)
+        ? 'Demasiados intentos. Espera unos minutos e intenta de nuevo.'
         : `Error: ${error.message}`)
       setLoading(false)
       return
     }
 
+    startCooldown()
     setStep('code')
     setLoading(false)
   }
@@ -119,13 +144,15 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || !email.trim()}
+                disabled={loading || !email.trim() || cooldown > 0}
                 className="w-full h-14 rounded-2xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
                 style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
               >
                 {loading
                   ? <><Loader2 className="w-5 h-5 animate-spin" /> Enviando...</>
-                  : <><Mail className="w-5 h-5" /> Enviar código</>}
+                  : cooldown > 0
+                    ? `Reenviar en ${cooldown}s`
+                    : <><Mail className="w-5 h-5" /> Enviar código</>}
               </button>
             </form>
 
@@ -183,12 +210,12 @@ export default function LoginPage() {
             <div className="flex flex-col items-center gap-3 mt-6">
               <button
                 onClick={sendOtp}
-                disabled={loading}
+                disabled={loading || cooldown > 0}
                 className="text-sm font-semibold disabled:opacity-40"
                 style={{ color: '#f43f5e' }}
                 type="button"
               >
-                Reenviar código
+                {cooldown > 0 ? `Reenviar en ${cooldown}s` : 'Reenviar código'}
               </button>
               <button
                 onClick={() => { setStep('email'); setCode(''); setError(null) }}

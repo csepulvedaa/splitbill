@@ -7,6 +7,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-04-23
+
+### Fixed
+- **OTP rate limit (429)**: detect HTTP 429 status from Supabase and show a clear message instead of the raw error string.
+- **Cooldown timer**: after sending a code, the send/resend button is disabled for 60 seconds with a live countdown (`Reenviar en 42s`), preventing users from hitting the rate limit by retrying too quickly.
+
 ## [0.9.1] - 2026-04-23
 
 ### Fixed
