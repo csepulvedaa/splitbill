@@ -86,7 +86,12 @@ async function callGemini(apiKey: string, image: string): Promise<OcrResult> {
   const jsonMatch = raw.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new OcrReadError('Gemini: no JSON found in response')
 
-  const result: OcrResult = JSON.parse(jsonMatch[0])
+  let result: OcrResult
+  try {
+    result = JSON.parse(jsonMatch[0])
+  } catch {
+    throw new OcrReadError('Gemini: invalid JSON in response')
+  }
   if (!Array.isArray(result.items)) throw new OcrReadError('Gemini: missing items array')
   if (result.items.length === 0) throw new OcrReadError('Gemini: no items extracted')
 
@@ -117,7 +122,12 @@ async function callOpenAI(apiKey: string, image: string): Promise<OcrResult> {
   const jsonMatch = raw.match(/\{[\s\S]*\}/)
   if (!jsonMatch) throw new OcrReadError('OpenAI: no JSON found in response')
 
-  const result: OcrResult = JSON.parse(jsonMatch[0])
+  let result: OcrResult
+  try {
+    result = JSON.parse(jsonMatch[0])
+  } catch {
+    throw new OcrReadError('OpenAI: invalid JSON in response')
+  }
   if (!Array.isArray(result.items)) throw new OcrReadError('OpenAI: missing items array')
   if (result.items.length === 0) throw new OcrReadError('OpenAI: no items extracted')
 
