@@ -45,7 +45,7 @@ export default function NewPage() {
     }, 3500)
 
     try {
-      const compressed = await compressImage(file)
+      const compressed = await compressImage(file, 768)
 
       const res = await fetch('/api/analyze-receipt', {
         method: 'POST',
