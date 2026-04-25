@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { analyzeReceipt } from '@/lib/vision-client'
+import { analyzeReceipt, OcrReadError } from '@/lib/vision-client'
 
 // Simple in-memory rate limiting (MVP)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -53,10 +53,16 @@ export async function POST(request: NextRequest) {
     const result = await analyzeReceipt(image)
     return NextResponse.json(result)
   } catch (err: unknown) {
-    console.error('[OCR] All providers failed:', err)
+    console.error('[OCR] Failed:', err)
+    if (err instanceof OcrReadError) {
+      return NextResponse.json(
+        { error: 'No pudimos leer la cuenta en la foto.', code: 'bad_photo' },
+        { status: 422 },
+      )
+    }
     return NextResponse.json(
-      { error: 'Could not read the receipt. Try with a clearer photo.' },
-      { status: 422 },
+      { error: 'El servicio de lectura no está disponible.', code: 'provider_error' },
+      { status: 503 },
     )
   }
 }

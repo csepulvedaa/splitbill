@@ -7,6 +7,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-04-25
+
+### Added
+- **Manual entry fallback**: when OCR fails, the error block shows context-aware messages and CTAs depending on failure type.
+- **Error type distinction**: `OcrReadError` (bad photo — model ran but couldn't extract items) vs infrastructure error (API down, key invalid). Each shows a different message and different buttons.
+  - `bad_photo`: "No pudimos leer la foto" + tips + [Intentar con otra foto] + [Ingresar manualmente]
+  - `provider_error`: "Servicio no disponible" + [Ingresar manualmente]
+- **"Ingresar sin foto" link**: always-visible shortcut below the camera/gallery buttons.
+
 ## [0.11.0] - 2026-04-25
 
 ### Changed
