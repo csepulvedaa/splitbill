@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck, MessageCircle, Clock } from 'lucide-react'
+import { Copy, CheckCheck, Share2, Camera, Pencil, CheckCircle2, UserCheck, MessageCircle, Clock, Users, Banknote, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/calculations'
 import type { Bill, PersonSummary } from '@/lib/types'
@@ -56,6 +56,7 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   const highlightRef = useRef<HTMLDivElement>(null)
 
   const allPaid = summaries.length > 0 && summaries.every((s) => paidMap[s.participant.id])
+  const paidCount = summaries.filter((s) => paidMap[s.participant.id]).length
 
   useEffect(() => {
     setCanShare(typeof navigator !== 'undefined' && !!navigator.share)
@@ -66,7 +67,6 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
     if (justEdited) toast.success('✅ Cuenta actualizada correctamente.')
   }, [justSaved, justEdited])
 
-  // Scroll to highlighted person on load
   useEffect(() => {
     if (highlightName && highlightRef.current) {
       setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
@@ -126,7 +126,7 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
     const { text, link } = buildPersonText(summary)
     if (canShare) {
       try { await navigator.share({ title: 'SplitBill', text, url: link }); return }
-      catch { /* cancelled — fall through */ }
+      catch { /* cancelled */ }
     } else {
       openWhatsApp(text)
     }
@@ -172,32 +172,59 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
   }
 
   const grandTotal = summaries.reduce((s, p) => s + p.total, 0)
+  const dateStr = new Date(bill.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })
 
   return (
     <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
-      <header className="safe-top px-5 pt-5 pb-5" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
-        <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-              <Image src="/favicon-96x96.png" alt="SplitBill" width={28} height={28} />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-bold text-white tracking-tight">SplitBill</h1>
-                {isSettled && (
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)', color: '#fff' }}>
-                    ✅ Liquidada
-                  </span>
-                )}
-              </div>
-              <p className="text-sm truncate" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                {bill.restaurant ?? 'División de cuenta'} · {new Date(bill.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}
-              </p>
+
+      {/* Header */}
+      <header
+        className="safe-top px-5 pt-5 pb-6"
+        style={{
+          background: isSettled
+            ? 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)'
+            : 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)',
+        }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <Link href="/">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
+              <Image src="/favicon-96x96.png" alt="SplitBill" width={22} height={22} />
             </div>
           </Link>
-          <div className="text-right shrink-0">
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>Total</p>
-            <p className="font-black text-xl text-white">{formatCurrency(grandTotal, currency)}</p>
+          <span className="font-bold text-white">SplitBill</span>
+          {isSettled && (
+            <span
+              className="ml-auto text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5"
+              style={{ background: 'rgba(255,255,255,0.25)', color: '#fff' }}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" /> Liquidada
+            </span>
+          )}
+        </div>
+
+        <div>
+          {isSettled && (
+            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              Cuenta saldada 🎊
+            </p>
+          )}
+          <h1 className="text-2xl font-black text-white tracking-tight leading-tight">
+            {bill.restaurant ?? 'División de cuenta'}
+          </h1>
+          <div className="flex items-center gap-4 mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="w-3.5 h-3.5" />
+              {dateStr}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" />
+              {isSettled ? `${paidCount}/${summaries.length} pagaron` : `${summaries.length} personas`}
+            </span>
+            <span className="flex items-center gap-1.5 font-bold tabular-nums">
+              <Banknote className="w-3.5 h-3.5" />
+              {formatCurrency(grandTotal, currency)}
+            </span>
           </div>
         </div>
       </header>
@@ -206,11 +233,14 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
       {isAnonymous && (() => {
         const days = daysUntilExpiry(bill.created_at)
         return (
-          <div className="mx-4 mt-3 flex items-start gap-2.5 rounded-2xl px-4 py-3" style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA' }}>
+          <div
+            className="mx-4 mt-3 flex items-start gap-3 rounded-2xl px-4 py-3"
+            style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA' }}
+          >
             <Clock className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#ea580c' }} />
             <p className="text-xs leading-relaxed" style={{ color: '#9a3412' }}>
               {days > 0
-                ? <>Esta cuenta se eliminará en <strong>{days} {days === 1 ? 'día' : 'días'}</strong>. <Link href="/login" className="font-semibold underline">Crea una cuenta</Link> para conservarla.</>
+                ? <><strong>Esta cuenta se elimina en {days} {days === 1 ? 'día' : 'días'}.</strong>{' '}<Link href="/login" className="font-semibold underline">Crea una cuenta</Link> para conservarla.</>
                 : <>Esta cuenta está por vencerse. <Link href="/login" className="font-semibold underline">Crea una cuenta</Link> para conservarla.</>
               }
             </p>
@@ -218,6 +248,7 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
         )
       })()}
 
+      {/* Person cards */}
       <div className="flex-1 px-4 py-4 space-y-3 pb-56">
         {summaries.map((s, idx) => {
           const color = avatarColor(idx)
@@ -228,90 +259,146 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
           const isToggling = togglingId === s.participant.id
 
           return (
-            <div key={s.participant.id} ref={isHighlighted ? highlightRef : null}
-              className="bg-white rounded-3xl overflow-hidden"
+            <div
+              key={s.participant.id}
+              ref={isHighlighted ? highlightRef : null}
+              className="rounded-3xl overflow-hidden transition-all"
               style={{
+                background: 'white',
                 boxShadow: isHighlighted ? '0 4px 20px rgba(244,63,94,0.18)' : '0 2px 12px rgba(0,0,0,0.07)',
-                border: isPaid ? '1.5px solid #86efac' : isHighlighted ? '2px solid #f43f5e' : '1px solid #F1F5F9',
-                opacity: isPaid ? 0.75 : 1,
-              }}>
-              <div className="flex items-center gap-3 px-4 py-3.5"
+                border: isPaid
+                  ? '1.5px solid #86efac'
+                  : isHighlighted
+                  ? '2px solid #f43f5e'
+                  : '1px solid #F1F5F9',
+                opacity: isPaid ? 0.82 : 1,
+              }}
+            >
+              {/* Card header */}
+              <div
+                className="flex items-center gap-3 px-4 py-3.5"
                 style={{
-                  background: isPaid ? '#F0FDF4' : isHighlighted ? 'linear-gradient(135deg, #f43f5e, #fb923c)' : '#FAFAFA',
+                  background: isPaid
+                    ? '#F0FDF4'
+                    : isHighlighted
+                    ? 'linear-gradient(135deg, #f43f5e, #fb923c)'
+                    : '#FAFAFA',
                   borderBottom: '1px solid #F1F5F9',
-                }}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-black shrink-0"
-                  style={isPaid ? { background: '#DCFCE7', color: '#16a34a' } : isHighlighted ? { background: 'rgba(255,255,255,0.25)', color: '#fff' } : { background: color.bg, color: color.text }}>
+                }}
+              >
+                {/* Avatar */}
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-base font-black shrink-0"
+                  style={
+                    isPaid
+                      ? { background: '#DCFCE7', color: '#16a34a' }
+                      : isHighlighted
+                      ? { background: 'rgba(255,255,255,0.25)', color: '#fff' }
+                      : { background: color.bg, color: color.text }
+                  }
+                >
                   {isPaid ? '✓' : s.participant.nombre.charAt(0).toUpperCase()}
                 </div>
+
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-base" style={{ color: isPaid ? '#16a34a' : isHighlighted ? '#fff' : '#0F172A' }}>
+                    <p
+                      className="font-bold text-base"
+                      style={{ color: isPaid ? '#16a34a' : isHighlighted ? '#fff' : '#0F172A' }}
+                    >
                       {s.participant.nombre}
                     </p>
                     {isPaid && (
-                      <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#DCFCE7', color: '#16a34a' }}>
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: '#DCFCE7', color: '#16a34a' }}
+                      >
                         Pagó ✓
                       </span>
                     )}
                   </div>
-                  {isHighlighted && !isPaid && <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>💸 Debes transferir</p>}
+                  {isHighlighted && !isPaid && (
+                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>💸 Debes transferir</p>
+                  )}
                 </div>
+
                 <div className="flex items-center gap-2 shrink-0">
-                  <p className="text-xl font-black" style={{ color: isPaid ? '#16a34a' : isHighlighted ? '#fff' : '#f43f5e' }}>
+                  <p
+                    className="text-xl font-black tabular-nums"
+                    style={{ color: isPaid ? '#16a34a' : isHighlighted ? '#fff' : '#f43f5e' }}
+                  >
                     {formatCurrency(s.total, currency)}
                   </p>
                   {!highlightName && (
-                    <button onClick={() => handleSharePerson(s)}
+                    <button
+                      onClick={() => handleSharePerson(s)}
                       className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
                       style={{ background: 'rgba(244,63,94,0.08)', color: '#f43f5e' }}
-                      title={`Compartir link de ${s.participant.nombre}`}>
+                      title={`Compartir link de ${s.participant.nombre}`}
+                    >
                       <Share2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
               </div>
 
+              {/* Items breakdown */}
               <div className="px-4 py-3.5 space-y-2.5">
                 {s.items.map((pi) => (
                   <div key={pi.item.id} className="flex justify-between items-baseline gap-2 text-sm">
-                    <span className="text-slate-600 flex-1 leading-snug">
+                    <span className="flex-1 leading-snug" style={{ color: '#475569' }}>
                       {pi.item.nombre}
-                      {pi.fraccion < 1 && <span className="text-slate-400 text-xs ml-1.5">÷{Math.round(1 / pi.fraccion)} de {formatCurrency(pi.item.precio_total ?? 0, currency)}</span>}
+                      {pi.fraccion < 1 && (
+                        <span className="text-xs ml-1.5" style={{ color: '#94a3b8' }}>
+                          ÷{Math.round(1 / pi.fraccion)} de {formatCurrency(pi.item.precio_total ?? 0, currency)}
+                        </span>
+                      )}
                     </span>
-                    <span className="font-semibold text-slate-800 shrink-0 tabular-nums">{formatCurrency(pi.monto, currency)}</span>
+                    <span className="font-semibold tabular-nums shrink-0" style={{ color: '#1e293b' }}>
+                      {formatCurrency(pi.monto, currency)}
+                    </span>
                   </div>
                 ))}
+
                 {bill.tip_manual_enabled && s.propina > 0 && (
-                  <div className="flex justify-between text-sm text-slate-400">
+                  <div className="flex justify-between text-sm" style={{ color: '#94a3b8' }}>
                     <span>Propina (10%)</span>
                     <span className="tabular-nums">{formatCurrency(s.propina, currency)}</span>
                   </div>
                 )}
+
                 <div className="h-px" style={{ background: '#F1F5F9' }} />
+
                 <div className="flex justify-between items-center pt-0.5">
-                  <span className="text-sm font-semibold text-slate-600">Total</span>
-                  <span className="text-xl font-black" style={{ color: isPaid ? '#16a34a' : '#f43f5e' }}>{formatCurrency(s.total, currency)}</span>
+                  <span className="text-sm font-semibold" style={{ color: '#64748b' }}>Total</span>
+                  <span className="text-xl font-black tabular-nums" style={{ color: isPaid ? '#16a34a' : '#f43f5e' }}>
+                    {formatCurrency(s.total, currency)}
+                  </span>
                 </div>
 
-                {/* Paid toggle — not shown when viewing a personal link */}
+                {/* Paid toggle */}
                 {!highlightName && !isSettled && (
-                  <button onClick={() => handleTogglePaid(s.participant.id)} disabled={isToggling}
+                  <button
+                    onClick={() => handleTogglePaid(s.participant.id)}
+                    disabled={isToggling}
                     className="w-full h-10 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-1 disabled:opacity-60"
                     style={isPaid
                       ? { background: '#F0FDF4', color: '#16a34a', border: '1px solid #BBF7D0' }
                       : { background: '#F8FAFC', color: '#64748B', border: '1px solid #E2E8F0' }
-                    }>
+                    }
+                  >
                     <CheckCircle2 className="w-4 h-4" />
                     {isToggling ? 'Guardando...' : isPaid ? 'Recibido ✓ — desmarcar' : 'Marcar como recibido'}
                   </button>
                 )}
 
-                {/* "Copy my amount" — only shown to the highlighted person */}
+                {/* Copy my amount */}
                 {isHighlighted && (
-                  <button onClick={() => handleCopyMyAmount(s)}
+                  <button
+                    onClick={() => handleCopyMyAmount(s)}
                     className="w-full h-10 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-1"
-                    style={{ background: '#FFF1F2', color: '#f43f5e', border: '1px solid #FECDD3' }}>
+                    style={{ background: '#FFF1F2', color: '#f43f5e', border: '1px solid #FECDD3' }}
+                  >
                     <UserCheck className="w-4 h-4" /> Copiar mi monto
                   </button>
                 )}
@@ -321,27 +408,42 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
         })}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-3 safe-bottom space-y-2" style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}>
-        <button onClick={handleShare}
+      {/* Sticky bottom bar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-3 safe-bottom space-y-2"
+        style={{ background: '#FFF7F7', borderTop: '1px solid #FFE4E6' }}
+      >
+        {/* Share */}
+        <button
+          onClick={handleShare}
           className="w-full h-14 rounded-2xl text-base font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}>
+          style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
+        >
           {canShare
             ? <><Share2 className="w-5 h-5" /> Compartir</>
             : <><MessageCircle className="w-5 h-5" /> Enviar por WhatsApp</>
           }
         </button>
 
+        {/* Secondary actions */}
         <div className="flex gap-2">
-          <button onClick={handleCopyText}
+          <button
+            onClick={handleCopyText}
             className="flex-1 h-12 rounded-2xl text-sm font-semibold flex items-center justify-center gap-1.5 bg-white transition-all active:scale-[0.98]"
-            style={{ color: '#64748B', border: '1px solid #E2E8F0' }}>
-            {copied ? <><CheckCheck className="w-4 h-4" style={{ color: '#22c55e' }} />Copiado</> : <><Copy className="w-4 h-4" />Copiar texto</>}
+            style={{ color: '#64748B', border: '1px solid #E2E8F0' }}
+          >
+            {copied
+              ? <><CheckCheck className="w-4 h-4" style={{ color: '#22c55e' }} />Copiado</>
+              : <><Copy className="w-4 h-4" />Copiar texto</>
+            }
           </button>
 
           {!isSettled && (
             <Link href={`/b/${billId}/edit`} className="flex-1">
-              <button className="w-full h-12 rounded-2xl text-sm font-semibold flex items-center justify-center gap-1.5 bg-white transition-all active:scale-[0.98]"
-                style={{ color: '#6366F1', border: '1px solid #C7D2FE' }}>
+              <button
+                className="w-full h-12 rounded-2xl text-sm font-semibold flex items-center justify-center gap-1.5 bg-white transition-all active:scale-[0.98]"
+                style={{ color: '#6366F1', border: '1px solid #C7D2FE' }}
+              >
                 <Pencil className="w-4 h-4" /> Editar
               </button>
             </Link>
@@ -349,27 +451,35 @@ export default function PublicView({ bill, billId, summaries, highlightName, jus
 
           {isSettled && (
             <Link href="/" className="flex-1">
-              <button className="w-full h-12 rounded-2xl text-sm font-semibold flex items-center justify-center gap-1.5 bg-white transition-all active:scale-[0.98]"
-                style={{ color: '#64748B', border: '1px solid #E2E8F0' }}>
+              <button
+                className="w-full h-12 rounded-2xl text-sm font-semibold flex items-center justify-center gap-1.5 bg-white transition-all active:scale-[0.98]"
+                style={{ color: '#64748B', border: '1px solid #E2E8F0' }}
+              >
                 <Camera className="w-4 h-4" /> Nueva cuenta
               </button>
             </Link>
           )}
         </div>
 
+        {/* Settle */}
         {!isSettled ? (
-          <button onClick={handleSettle} disabled={settling}
+          <button
+            onClick={handleSettle}
+            disabled={settling}
             className="w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60"
             style={allPaid
               ? { color: '#fff', background: 'linear-gradient(135deg, #22c55e, #16a34a)', boxShadow: '0 4px 16px rgba(34,197,94,0.30)' }
               : { color: '#16a34a', border: '1px solid #BBF7D0', background: '#F0FDF4' }
-            }>
+            }
+          >
             <CheckCircle2 className="w-4 h-4" />
             {settling ? 'Guardando...' : allPaid ? '¡Todos pagaron! Liquidar cuenta' : 'Marcar cuenta como liquidada'}
           </button>
         ) : (
-          <div className="w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
-            style={{ color: '#16a34a', background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+          <div
+            className="w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
+            style={{ color: '#16a34a', background: '#F0FDF4', border: '1px solid #BBF7D0' }}
+          >
             <CheckCircle2 className="w-4 h-4" /> Cuenta liquidada 🎊
           </div>
         )}

@@ -7,6 +7,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-04-25
+
+### Changed
+- **UI redesign — 3 screens**: `/new`, `/receipt/review`, and `/b/[id]` rebuilt from a Claude Design system mockup.
+  - `/new`: cleaner photo capture layout; gallery as secondary card; manual entry as dashed CTA; better error cards distinguishing bad photo vs provider error.
+  - `/receipt/review`: gradient header with step progress bar; totals summary card at top; numbered item cards with confidence badges; totals breakdown card.
+  - `/b/[id]` (PublicView): restaurant name prominent in header; date / people / total chips; settled state switches header to green gradient.
+- All logic and functionality preserved — visual-only changes.
+
 ## [0.11.1] - 2026-04-25
 
 ### Added
