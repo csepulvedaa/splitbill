@@ -2,8 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, ImageIcon, ArrowLeft, AlertCircle, PenLine } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Camera, ImageIcon, ArrowLeft, AlertCircle, PenLine, AlertTriangle } from 'lucide-react'
 import { compressImage } from '@/lib/compress'
 import { saveDraft, emptyDraft } from '@/lib/store'
 import type { OcrResult, EditableItem } from '@/lib/types'
@@ -39,7 +38,6 @@ export default function NewPage() {
 
     setProcessing(true)
 
-    // Rotate status messages
     let msgIdx = 0
     const interval = setInterval(() => {
       msgIdx = (msgIdx + 1) % MESSAGES.length
@@ -106,12 +104,12 @@ export default function NewPage() {
 
   if (processing) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-dvh text-white px-8" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
+      <div className="flex flex-col items-center justify-center min-h-dvh px-8" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
         <div className="relative w-20 h-20 mb-8">
           <div className="absolute inset-0 rounded-full border-4 border-white/30" />
           <div className="absolute inset-0 rounded-full border-4 border-t-white animate-spin" />
         </div>
-        <p className="text-xl font-semibold text-center mb-2">{statusMsg}</p>
+        <p className="text-xl font-bold text-white text-center mb-2">{statusMsg}</p>
         <p className="text-white/70 text-sm text-center">Esto toma entre 10 y 20 segundos</p>
       </div>
     )
@@ -119,99 +117,128 @@ export default function NewPage() {
 
   return (
     <div className="flex flex-col min-h-dvh" style={{ background: '#FFF7F7' }}>
-      <header className="safe-top text-white px-4 pt-4 pb-5 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
-        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>
-          <ArrowLeft className="w-6 h-6" />
+      <header className="safe-top text-white px-5 pt-5 pb-6 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' }}>
+        <button
+          onClick={() => router.back()}
+          className="w-9 h-9 flex items-center justify-center rounded-full shrink-0"
+          style={{ background: 'rgba(255,255,255,0.2)' }}
+        >
+          <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-semibold">📸 Nueva cuenta</h1>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight">📸 Nueva cuenta</h1>
+          <p className="text-white/75 text-xs mt-0.5">Fotografía el ticket o ingresa manual</p>
+        </div>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
+      <div className="flex-1 flex flex-col px-5 py-5 gap-4">
+
+        {/* Error block */}
         {error && (
-          <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
-            <div className="flex items-start gap-3 text-red-700">
-              <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'white', border: '1px solid #FECDD3', boxShadow: '0 2px 12px rgba(244,63,94,0.10)' }}>
+            <div className="px-4 pt-4 pb-3 flex items-start gap-3">
+              {errorCode === 'bad_photo'
+                ? <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#f43f5e' }} />
+                : <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#f43f5e' }} />
+              }
               <div>
-                <p className="text-sm font-semibold">
-                  {errorCode === 'bad_photo'
-                    ? 'No pudimos leer la foto'
-                    : 'Servicio no disponible'}
+                <p className="font-bold text-sm" style={{ color: '#1e293b' }}>
+                  {errorCode === 'bad_photo' ? 'No pudimos leer la foto' : 'Servicio no disponible'}
                 </p>
-                <p className="text-xs mt-0.5 text-red-600">
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: '#64748b' }}>
                   {errorCode === 'bad_photo'
-                    ? 'Intenta con mejor iluminación, más cerca o sin flash. También puedes ingresar los ítems a mano.'
-                    : 'El lector de cuentas falló. Puedes ingresar los ítems manualmente mientras se resuelve.'}
+                    ? 'Intenta con mejor iluminación, más cerca o sin flash.'
+                    : 'El lector de cuentas falló. Puedes ingresar los ítems manualmente.'}
                 </p>
               </div>
             </div>
-
-            {errorCode === 'bad_photo' && (
+            <div className="px-4 pb-4 flex flex-col gap-2">
+              {errorCode === 'bad_photo' && (
+                <button
+                  onClick={() => { setError(null); setErrorCode(null); cameraInputRef.current?.click() }}
+                  className="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                  style={{ background: '#FFF1F2', color: '#f43f5e', border: '1.5px solid #FECDD3' }}
+                >
+                  <Camera className="w-4 h-4" />
+                  Intentar con otra foto
+                </button>
+              )}
               <button
-                onClick={() => { setError(null); setErrorCode(null); cameraInputRef.current?.click() }}
-                className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold border-2 border-red-300 text-red-700 bg-white active:bg-red-50"
+                onClick={handleManualEntry}
+                className="w-full h-11 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)' }}
               >
-                <Camera className="w-4 h-4" />
-                Intentar con otra foto
+                <PenLine className="w-4 h-4" />
+                Ingresar ítems manualmente
               </button>
-            )}
-
-            <button
-              onClick={handleManualEntry}
-              className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold text-white"
-              style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)' }}
-            >
-              <PenLine className="w-4 h-4" />
-              Ingresar ítems manualmente
-            </button>
+            </div>
           </div>
         )}
 
+        {/* Camera button */}
         <button
           onClick={() => cameraInputRef.current?.click()}
-          className="w-full flex flex-col items-center justify-center gap-3 text-white rounded-3xl h-44 transition-colors"
-          style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)', boxShadow: '0 4px 20px rgba(244,63,94,0.30)' }}
+          className="w-full flex flex-col items-center justify-center gap-3 text-white rounded-3xl h-44 transition-all active:scale-[0.98]"
+          style={{
+            background: 'linear-gradient(135deg, #f43f5e, #fb923c)',
+            boxShadow: '0 8px 32px rgba(244,63,94,0.30)',
+          }}
         >
           <Camera className="w-10 h-10" />
-          <span className="text-lg font-semibold">Tomar foto</span>
-          <span className="text-white/70 text-sm">Apunta a la cuenta</span>
+          <div className="text-center">
+            <p className="text-lg font-bold">Tomar foto</p>
+            <p className="text-white/70 text-sm mt-0.5">Apunta a la cuenta del restaurante</p>
+          </div>
         </button>
 
+        {/* Gallery button */}
         <button
           onClick={() => galleryInputRef.current?.click()}
-          className="w-full flex flex-col items-center justify-center gap-3 bg-white border-2 border-slate-200 text-slate-700 rounded-3xl h-32 active:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-center gap-3 bg-white rounded-2xl h-16 active:bg-slate-50 transition-colors"
+          style={{ border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
         >
-          <ImageIcon className="w-8 h-8" />
-          <span className="text-base font-semibold">Subir desde galería</span>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#FFF1F2' }}>
+            <ImageIcon className="w-5 h-5" style={{ color: '#f43f5e' }} />
+          </div>
+          <span className="text-base font-semibold text-slate-700">Subir desde galería</span>
         </button>
 
+        {/* Divider */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px" style={{ background: '#e2e8f0' }} />
+          <span className="text-xs font-medium text-slate-400">o</span>
+          <div className="flex-1 h-px" style={{ background: '#e2e8f0' }} />
+        </div>
+
+        {/* Manual entry */}
         <button
           onClick={handleManualEntry}
-          className="flex items-center gap-2 text-sm font-medium mt-2"
-          style={{ color: '#f43f5e' }}
+          className="w-full flex items-center justify-center gap-2 h-14 rounded-2xl text-sm font-semibold bg-white active:bg-slate-50 transition-colors"
+          style={{ color: '#f43f5e', border: '1.5px dashed #FECDD3' }}
         >
           <PenLine className="w-4 h-4" />
           Ingresar sin foto
         </button>
-
-        {/* Hidden file inputs */}
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={onFileChange}
-        />
-        <input
-          ref={galleryInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={onFileChange}
-        />
       </div>
 
-      <div className="safe-bottom h-6" />
+      {/* Hidden file inputs */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={onFileChange}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onFileChange}
+      />
+
+      <div className="safe-bottom h-4" />
     </div>
   )
 }
