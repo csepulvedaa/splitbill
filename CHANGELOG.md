@@ -7,6 +7,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-04-25
+
+### Added
+- **Manual entry fallback**: when OCR fails, the error block now shows an "Ingresar ítems manualmente" button that opens the review screen with an empty item list.
+- **"Ingresar sin foto" link**: always-visible shortcut below the camera/gallery buttons for users who prefer to skip OCR entirely.
+
 ## [0.10.0] - 2026-04-24
 
 ### Added

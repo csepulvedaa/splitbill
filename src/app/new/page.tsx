@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, ImageIcon, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Camera, ImageIcon, ArrowLeft, AlertCircle, PenLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { compressImage } from '@/lib/compress'
 import { saveDraft, emptyDraft } from '@/lib/store'
@@ -76,10 +76,20 @@ export default function NewPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error desconocido.'
       setError(msg)
+      setProcessing(false)
+      clearInterval(interval)
     } finally {
       clearInterval(interval)
       setProcessing(false)
     }
+  }
+
+  function handleManualEntry() {
+    const draft = emptyDraft()
+    draft.items = []
+    draft.tipManualEnabled = true
+    saveDraft(draft)
+    router.push('/receipt/review')
   }
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -112,9 +122,19 @@ export default function NewPage() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
         {error && (
-          <div className="w-full flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 text-red-700">
-            <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-            <p className="text-sm">{error}</p>
+          <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4">
+            <div className="flex items-start gap-3 text-red-700 mb-3">
+              <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+              <p className="text-sm">{error}</p>
+            </div>
+            <button
+              onClick={handleManualEntry}
+              className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold text-white"
+              style={{ background: 'linear-gradient(135deg, #f43f5e, #fb923c)' }}
+            >
+              <PenLine className="w-4 h-4" />
+              Ingresar ítems manualmente
+            </button>
           </div>
         )}
 
@@ -134,6 +154,15 @@ export default function NewPage() {
         >
           <ImageIcon className="w-8 h-8" />
           <span className="text-base font-semibold">Subir desde galería</span>
+        </button>
+
+        <button
+          onClick={handleManualEntry}
+          className="flex items-center gap-2 text-sm font-medium mt-2"
+          style={{ color: '#f43f5e' }}
+        >
+          <PenLine className="w-4 h-4" />
+          Ingresar sin foto
         </button>
 
         {/* Hidden file inputs */}
