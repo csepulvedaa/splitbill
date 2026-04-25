@@ -16,6 +16,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `provider_error`: "Servicio no disponible" + [Ingresar manualmente]
 - **"Ingresar sin foto" link**: always-visible shortcut below the camera/gallery buttons.
 
+## [0.11.0] - 2026-04-25
+
+### Changed
+- **OCR cost optimization**: OpenAI fallback switched from `gpt-4o` to `gpt-4o-mini` (~16× cheaper per request). Image compression reduced from 1280px to 768px max (smaller payload, faster upload). Quality and accuracy on receipts is equivalent for this use case.
+
 ## [0.10.0] - 2026-04-24
 
 ### Added
