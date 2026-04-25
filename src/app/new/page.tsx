@@ -13,6 +13,7 @@ export default function NewPage() {
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<'bad_photo' | 'provider_error' | null>(null)
   const [processing, setProcessing] = useState(false)
   const [statusMsg, setStatusMsg] = useState('Leyendo la cuenta...')
 
@@ -25,6 +26,7 @@ export default function NewPage() {
 
   async function handleFile(file: File) {
     setError(null)
+    setErrorCode(null)
 
     if (file.size > 10 * 1024 * 1024) {
       setError('La imagen es demasiado grande. Máximo 10MB.')
@@ -56,7 +58,9 @@ export default function NewPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error ?? 'Error al procesar la imagen.')
+        const err = new Error(data.error ?? 'Error al procesar la imagen.')
+        ;(err as Error & { code?: string }).code = data.code ?? null
+        throw err
       }
 
       const ocrResult: OcrResult = await res.json()
@@ -75,7 +79,9 @@ export default function NewPage() {
       router.push('/receipt/review')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error desconocido.'
+      const code = (err as Error & { code?: string }).code ?? null
       setError(msg)
+      setErrorCode(code as 'bad_photo' | 'provider_error' | null)
       setProcessing(false)
       clearInterval(interval)
     } finally {
@@ -122,11 +128,33 @@ export default function NewPage() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
         {error && (
-          <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4">
-            <div className="flex items-start gap-3 text-red-700 mb-3">
+          <div className="w-full bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
+            <div className="flex items-start gap-3 text-red-700">
               <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-              <p className="text-sm">{error}</p>
+              <div>
+                <p className="text-sm font-semibold">
+                  {errorCode === 'bad_photo'
+                    ? 'No pudimos leer la foto'
+                    : 'Servicio no disponible'}
+                </p>
+                <p className="text-xs mt-0.5 text-red-600">
+                  {errorCode === 'bad_photo'
+                    ? 'Intenta con mejor iluminación, más cerca o sin flash. También puedes ingresar los ítems a mano.'
+                    : 'El lector de cuentas falló. Puedes ingresar los ítems manualmente mientras se resuelve.'}
+                </p>
+              </div>
             </div>
+
+            {errorCode === 'bad_photo' && (
+              <button
+                onClick={() => { setError(null); setErrorCode(null); cameraInputRef.current?.click() }}
+                className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold border-2 border-red-300 text-red-700 bg-white active:bg-red-50"
+              >
+                <Camera className="w-4 h-4" />
+                Intentar con otra foto
+              </button>
+            )}
+
             <button
               onClick={handleManualEntry}
               className="w-full flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold text-white"

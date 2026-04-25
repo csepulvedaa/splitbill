@@ -1,6 +1,15 @@
 import OpenAI from 'openai'
 import type { OcrResult } from './types'
 
+// Thrown when a provider ran successfully but could not extract items from the image
+// (bad photo quality, unrecognizable receipt, etc.). Distinct from infrastructure errors.
+export class OcrReadError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'OcrReadError'
+  }
+}
+
 // ─── OCR system prompt ────────────────────────────────────────────────────────
 
 export const SYSTEM_PROMPT = `You are a specialist in extracting structured data from restaurant receipts and bills.
@@ -75,10 +84,11 @@ async function callGemini(apiKey: string, image: string): Promise<OcrResult> {
   const data = await res.json()
   const raw: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
   const jsonMatch = raw.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error('Gemini: no JSON found in response')
+  if (!jsonMatch) throw new OcrReadError('Gemini: no JSON found in response')
 
   const result: OcrResult = JSON.parse(jsonMatch[0])
-  if (!Array.isArray(result.items)) throw new Error('Gemini: missing items array')
+  if (!Array.isArray(result.items)) throw new OcrReadError('Gemini: missing items array')
+  if (result.items.length === 0) throw new OcrReadError('Gemini: no items extracted')
 
   return result
 }
@@ -105,10 +115,11 @@ async function callOpenAI(apiKey: string, image: string): Promise<OcrResult> {
 
   const raw = response.choices[0]?.message?.content ?? ''
   const jsonMatch = raw.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error('OpenAI: no JSON found in response')
+  if (!jsonMatch) throw new OcrReadError('OpenAI: no JSON found in response')
 
   const result: OcrResult = JSON.parse(jsonMatch[0])
-  if (!Array.isArray(result.items)) throw new Error('OpenAI: missing items array')
+  if (!Array.isArray(result.items)) throw new OcrReadError('OpenAI: missing items array')
+  if (result.items.length === 0) throw new OcrReadError('OpenAI: no items extracted')
 
   return result
 }
@@ -132,7 +143,7 @@ export async function analyzeReceipt(image: string): Promise<OcrResult> {
     throw new Error('No OCR provider configured. Set GEMINI_API_KEY or OPENAI_API_KEY.')
   }
 
-  const errors: string[] = []
+  const errors: Array<{ msg: string; isReadError: boolean }> = []
 
   for (const provider of available) {
     try {
@@ -142,10 +153,16 @@ export async function analyzeReceipt(image: string): Promise<OcrResult> {
       return result
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      console.warn(`[OCR] ${provider.name} failed: ${msg}`)
-      errors.push(`${provider.name}: ${msg}`)
+      const isReadError = err instanceof OcrReadError
+      console.warn(`[OCR] ${provider.name} failed (${isReadError ? 'read' : 'infra'}): ${msg}`)
+      errors.push({ msg: `${provider.name}: ${msg}`, isReadError })
     }
   }
 
-  throw new Error(`All OCR providers failed.\n${errors.join('\n')}`)
+  // If every provider that ran returned a read error, it's a photo quality issue
+  const allReadErrors = errors.length > 0 && errors.every((e) => e.isReadError)
+  const summary = errors.map((e) => e.msg).join('\n')
+
+  if (allReadErrors) throw new OcrReadError(`Could not extract items from receipt.\n${summary}`)
+  throw new Error(`All OCR providers failed.\n${summary}`)
 }
